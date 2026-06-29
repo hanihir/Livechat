@@ -3,7 +3,10 @@
 const DEFAULT_SERVER = 'wss://livechat-k7we.onrender.com';
 
 const els = {
-  name: document.getElementById('name'),
+  pseudoDisplay: document.getElementById('pseudoDisplay'),
+  pseudoSetup: document.getElementById('pseudoSetup'),
+  pseudoInput: document.getElementById('pseudoInput'),
+  pseudoValidate: document.getElementById('pseudoValidate'),
   drop: document.getElementById('drop'),
   file: document.getElementById('file'),
   preview: document.getElementById('preview'),
@@ -55,12 +58,37 @@ let myId = null;
 let users = []; // [{ id, name }]
 const selectedTargets = new Set(); // ids cochés quand "tout le monde" est décoché
 
-// --- Mémorise pseudo + adresse serveur entre deux ouvertures ---
-els.name.value = localStorage.getItem('name') || '';
-els.server.value = localStorage.getItem('server') || DEFAULT_SERVER;
+// --- Pseudo : demandé une seule fois au lancement, puis verrouillé ---
+let myName = localStorage.getItem('name') || '';
 
-els.name.addEventListener('input', () => localStorage.setItem('name', els.name.value));
-els.name.addEventListener('change', sendHello); // prévient le serveur du nouveau pseudo
+function applyPseudo(name) {
+  myName = name;
+  localStorage.setItem('name', name);
+  els.pseudoDisplay.textContent = name;
+  els.pseudoSetup.hidden = true;
+  sendHello(); // informe le serveur (et met à jour la liste des connectés)
+}
+
+if (myName) {
+  els.pseudoDisplay.textContent = myName;
+} else {
+  // Première ouverture : on demande le pseudo (écran bloquant).
+  els.pseudoSetup.hidden = false;
+  setTimeout(() => els.pseudoInput.focus(), 50);
+}
+
+function validatePseudo() {
+  const v = els.pseudoInput.value.trim();
+  if (!v) { els.pseudoInput.focus(); return; }
+  applyPseudo(v);
+}
+els.pseudoValidate.addEventListener('click', validatePseudo);
+els.pseudoInput.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') validatePseudo();
+});
+
+// --- Adresse serveur ---
+els.server.value = localStorage.getItem('server') || DEFAULT_SERVER;
 els.server.addEventListener('change', () => {
   localStorage.setItem('server', els.server.value || DEFAULT_SERVER);
   connect();
@@ -192,7 +220,7 @@ function setStatus(connected, text) {
 
 function sendHello() {
   if (ws && ws.readyState === WebSocket.OPEN) {
-    ws.send(JSON.stringify({ type: 'hello', name: els.name.value || 'Anonyme' }));
+    ws.send(JSON.stringify({ type: 'hello', name: myName || 'Anonyme' }));
   }
 }
 
@@ -278,7 +306,7 @@ els.send.addEventListener('click', async () => {
   // Enregistre le mème dans l'historique partagé (vignette + version pleine taille).
   if (window.SB && window.SB.configured()) {
     const [thumb, full] = await Promise.all([makeThumb(imageData), makeFull(imageData)]);
-    window.SB.addMeme(els.name.value || 'Anonyme', thumb, full);
+    window.SB.addMeme(myName || 'Anonyme', thumb, full);
   }
 });
 

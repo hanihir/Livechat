@@ -88,6 +88,18 @@
     summary { cursor: pointer; color: var(--muted); font-size: 12px; }
     code { background: rgba(255,255,255,.08); padding: 1px 5px; border-radius: 5px; }
 
+    .pseudo-display { font-size: 16px; font-weight: 700; color: var(--text); }
+    .pseudo-box { margin: auto; max-width: 360px; width: 100%; text-align: center; background: var(--card); padding: 28px 24px; border-radius: 18px; }
+    .pseudo-emoji { font-size: 48px; }
+    .pseudo-box h2 { margin: 8px 0 6px; font-size: 20px; }
+    .pseudo-box p { color: var(--muted); font-size: 14px; margin-bottom: 18px; }
+    .pseudo-box input {
+      width: 100%; padding: 12px; border-radius: 10px; border: 1px solid rgba(255,255,255,.14);
+      background: #0e0f1f; color: var(--text); font-size: 16px; text-align: center; margin-bottom: 14px; outline: none;
+    }
+    .pseudo-box input:focus { border-color: var(--accent); }
+    .pseudo-box .btn.primary { width: 100%; padding: 13px; font-size: 15px; }
+
     .card-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
     .card-head .title { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
     .badge { background: rgba(108,92,231,.25); color: #c9c2ff; font-size: 12px; font-weight: 700; padding: 2px 9px; border-radius: 999px; }
@@ -243,7 +255,7 @@
 
   <div class="card">
     <label class="field">Ton pseudo</label>
-    <input id="name" type="text" placeholder="Ex : Hani" maxlength="40" />
+    <div id="pseudoDisplay" class="pseudo-display">—</div>
   </div>
 
   <div class="card">
@@ -394,6 +406,17 @@
     </div>
     <div class="lib-status" id="histStatus"></div>
     <div class="hist-body" id="histBody"></div>
+  </div>
+
+  <!-- ===== Choix du pseudo (au 1er lancement, définitif) ===== -->
+  <div class="editor-overlay" id="pseudoSetup" hidden>
+    <div class="pseudo-box">
+      <div class="pseudo-emoji">📺</div>
+      <h2>Bienvenue sur LiveChatr</h2>
+      <p>Choisis ton pseudo. ⚠️ Il sera <b>définitif</b> — tu ne pourras plus le changer.</p>
+      <input id="pseudoInput" type="text" maxlength="40" placeholder="Ton pseudo" />
+      <button id="pseudoValidate" class="btn primary">C'est parti 🚀</button>
+    </div>
   </div>
 
   <script src="meme-editor.js"></script>
