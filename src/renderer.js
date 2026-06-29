@@ -275,12 +275,35 @@ els.send.addEventListener('click', async () => {
     })
   );
 
-  // Enregistre le mème dans l'historique partagé (vignette légère).
+  // Enregistre le mème dans l'historique partagé (vignette + version pleine taille).
   if (window.SB && window.SB.configured()) {
-    const thumb = await makeThumb(imageData);
-    window.SB.addMeme(els.name.value || 'Anonyme', thumb);
+    const [thumb, full] = await Promise.all([makeThumb(imageData), makeFull(imageData)]);
+    window.SB.addMeme(els.name.value || 'Anonyme', thumb, full);
   }
 });
+
+// Version "pleine taille" pour la visionneuse (garde les GIF animés).
+function makeFull(dataUrl) {
+  if (dataUrl.startsWith('data:image/gif')) return Promise.resolve(dataUrl);
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => {
+      const MAX = 1000;
+      let w = img.width;
+      let h = img.height;
+      const r = Math.min(1, MAX / Math.max(w, h));
+      w = Math.round(w * r);
+      h = Math.round(h * r);
+      const canvas = document.createElement('canvas');
+      canvas.width = w;
+      canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      resolve(canvas.toDataURL('image/jpeg', 0.85));
+    };
+    img.onerror = () => resolve(dataUrl);
+    img.src = dataUrl;
+  });
+}
 
 // Fabrique une petite vignette (pour l'historique) à partir de l'image envoyée.
 function makeThumb(dataUrl) {

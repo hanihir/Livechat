@@ -21,6 +21,21 @@
 
   function me() { return localStorage.getItem('name') || 'Anonyme'; }
 
+  // Visionneuse plein écran : clic sur un mème → affiché en grand, clic = ferme.
+  function openLightbox(src) {
+    let lb = document.getElementById('histLightbox');
+    if (!lb) {
+      lb = document.createElement('div');
+      lb.id = 'histLightbox';
+      lb.className = 'hist-lightbox';
+      lb.innerHTML = '<img alt="" />';
+      lb.addEventListener('click', () => { lb.hidden = true; });
+      document.body.appendChild(lb);
+    }
+    lb.querySelector('img').src = src;
+    lb.hidden = false;
+  }
+
   function timeAgo(iso) {
     const s = Math.floor((Date.now() - new Date(iso).getTime()) / 1000);
     if (s < 60) return 'à l\'instant';
@@ -74,6 +89,8 @@
       const img = document.createElement('img');
       img.src = mm.thumb;
       img.className = 'hist-thumb';
+      img.title = 'Cliquer pour voir en grand';
+      img.addEventListener('click', () => openLightbox(mm.full || mm.thumb));
       item.appendChild(img);
 
       const info = document.createElement('div');

@@ -210,7 +210,15 @@
       display: flex; gap: 12px; align-items: center; padding: 10px;
       background: var(--card); border-radius: 12px; margin-bottom: 8px;
     }
-    .hist-thumb { width: 64px; height: 64px; border-radius: 8px; object-fit: cover; background: #222; flex: 0 0 auto; }
+    .hist-thumb { width: 64px; height: 64px; border-radius: 8px; object-fit: cover; background: #222; flex: 0 0 auto; cursor: zoom-in; transition: transform .1s; }
+    .hist-thumb:hover { transform: scale(1.06); }
+    .hist-lightbox {
+      position: fixed; inset: 0; z-index: 1100; cursor: zoom-out;
+      background: rgba(0, 0, 0, 0.92);
+      display: flex; align-items: center; justify-content: center; padding: 24px;
+    }
+    .hist-lightbox[hidden] { display: none; }
+    .hist-lightbox img { max-width: 92vw; max-height: 92vh; object-fit: contain; border-radius: 12px; box-shadow: 0 20px 80px rgba(0,0,0,.6); }
     .hist-info { flex: 1; min-width: 0; }
     .hist-head { font-weight: 600; font-size: 13px; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .hist-avg { font-size: 12px; color: var(--muted); margin-top: 2px; }
