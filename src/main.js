@@ -10,11 +10,13 @@ let controlWindow;
 // Fenêtre principale : l'interface où on choisit l'image, la durée, etc.
 function createControlWindow() {
   controlWindow = new BrowserWindow({
-    width: 520,
-    height: 720,
-    resizable: false,
+    width: 640,
+    height: 860,
+    minWidth: 480,
+    minHeight: 640,
+    resizable: true,
     title: 'LiveChatr',
-    backgroundColor: '#0f1020',
+    backgroundColor: '#FBF1DE',
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,

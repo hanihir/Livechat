@@ -8,7 +8,6 @@
   <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <style>
     :root {
-      /* Palette néo-brutaliste */
       --paper: #FBF1DE;
       --paper2: #F1E2C4;
       --ink: #18140E;
@@ -21,12 +20,10 @@
       --ok: #16C079;
       --bad: #FF4D4D;
       --muted: #6E655A;
-      /* alias rétro-compat */
       --bg: var(--paper);
       --text: var(--ink);
       --accent: var(--blue);
       --accent2: var(--pink);
-
       --font-display: 'Bricolage Grotesque', 'Arial Black', system-ui, sans-serif;
       --font-body: 'Hanken Grotesk', system-ui, sans-serif;
       --bd: 2.5px solid var(--ink);
@@ -38,19 +35,37 @@
       margin: 0;
       font-family: var(--font-body);
       color: var(--ink);
-      padding: 22px;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
       background-color: var(--paper);
       background-image: radial-gradient(rgba(24,20,14,0.06) 1px, transparent 1px);
       background-size: 22px 22px;
       -webkit-user-select: none;
       user-select: none;
     }
-    h1 {
-      font-family: var(--font-display); font-weight: 800; font-size: 30px;
-      margin: 0 0 6px; letter-spacing: -0.02em;
-      text-shadow: 2.5px 2.5px 0 var(--pink);
+
+    /* ---- Barre du haut ---- */
+    .topbar {
+      flex: 0 0 auto;
+      display: flex; align-items: center; justify-content: space-between; gap: 12px;
+      padding: 14px 20px; border-bottom: var(--bd); background: var(--card);
     }
-    .sub { color: var(--muted); font-size: 13px; font-weight: 500; margin-bottom: 18px; }
+    .brand { font-family: var(--font-display); font-weight: 800; font-size: 24px; letter-spacing: -0.02em; text-shadow: 2.5px 2.5px 0 var(--pink); }
+    .topbar-right { display: flex; align-items: center; gap: 10px; }
+    .icon-btn {
+      width: 44px; height: 44px; flex: 0 0 auto; border: var(--bd); border-radius: 11px;
+      background: var(--yellow); color: var(--ink); font-size: 19px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: var(--sh-sm); transition: transform .1s, box-shadow .1s;
+    }
+    .icon-btn:hover { transform: translate(-1px,-1px); box-shadow: 4px 4px 0 var(--ink); }
+    .icon-btn:active { transform: translate(2px,2px); box-shadow: 1px 1px 0 var(--ink); }
+
+    /* ---- Zone défilante + pied fixe ---- */
+    .content { flex: 1 1 auto; overflow-y: auto; padding: 18px 20px; }
+    .footer { flex: 0 0 auto; padding: 14px 20px; border-top: var(--bd); background: var(--card); }
+    .sub { color: var(--muted); font-size: 13px; font-weight: 500; }
 
     .card {
       background: var(--card);
@@ -91,7 +106,6 @@
     }
     .drop:hover { background: var(--lime); color: var(--ink); }
 
-    /* Boutons secondaires "chunky" */
     .meme-btn {
       width: 100%; margin-top: 10px; padding: 12px;
       border: var(--bd); border-radius: 11px;
@@ -104,24 +118,21 @@
     #openMeme { background: var(--lime); }
     #openLib { background: var(--blue); color: #fff; }
     #openMusic { background: var(--pink); color: #fff; }
-    #openHistory { background: var(--yellow); }
 
     .preview { margin-top: 12px; text-align: center; }
-    .preview img { max-width: 100%; max-height: 180px; border-radius: 10px; border: var(--bd); box-shadow: var(--sh-sm); }
+    .preview img { max-width: 100%; max-height: 200px; border-radius: 10px; border: var(--bd); box-shadow: var(--sh-sm); }
     .row { display: flex; align-items: center; gap: 12px; }
     .dur { font-family: var(--font-display); font-variant-numeric: tabular-nums; font-weight: 700; min-width: 54px; text-align: right; }
 
-    /* Sliders brutalistes */
     input[type=range] { -webkit-appearance: none; appearance: none; height: 18px; background: transparent; cursor: pointer; flex: 1; }
     input[type=range]::-webkit-slider-runnable-track { height: 14px; background: var(--paper2); border: var(--bd); border-radius: 999px; }
     input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 22px; height: 22px; margin-top: -6px; background: var(--blue); border: var(--bd); border-radius: 6px; }
     input[type=range]::-moz-range-track { height: 14px; background: var(--paper2); border: var(--bd); border-radius: 999px; }
     input[type=range]::-moz-range-thumb { width: 20px; height: 20px; background: var(--blue); border: var(--bd); border-radius: 6px; }
 
-    /* Bouton ENVOYER (CTA principal) */
     button.send {
       width: 100%; padding: 16px; border: var(--bd); border-radius: 14px;
-      font-family: var(--font-display); font-size: 18px; font-weight: 800; letter-spacing: .01em;
+      font-family: var(--font-display); font-size: 19px; font-weight: 800; letter-spacing: .01em;
       color: var(--ink); cursor: pointer; background: var(--lime);
       box-shadow: var(--sh); transition: transform .1s, box-shadow .1s;
     }
@@ -129,16 +140,17 @@
     button.send:active { transform: translate(3px,3px); box-shadow: 1px 1px 0 var(--ink); }
     button.send:disabled { background: var(--paper2); color: #a89c88; box-shadow: var(--sh-sm); cursor: not-allowed; transform: none; }
 
-    .status { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; color: var(--muted); margin-top: 14px; }
+    .status { display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 13px; font-weight: 600; color: var(--muted); margin-top: 10px; }
     .dot { width: 13px; height: 13px; border-radius: 50%; border: 2px solid var(--ink); background: var(--bad); transition: .2s; }
     .dot.on { background: var(--ok); }
-    details { margin-top: 10px; }
+    details { margin-top: 6px; }
     summary { cursor: pointer; color: var(--muted); font-size: 12px; font-weight: 700; }
     code { background: var(--paper2); border: 1.5px solid var(--ink); padding: 1px 5px; border-radius: 5px; font-weight: 600; }
 
     .pseudo-display {
-      display: inline-block; font-family: var(--font-display); font-size: 16px; font-weight: 800; color: var(--ink);
-      background: var(--lime); border: var(--bd); border-radius: 9px; padding: 5px 14px; box-shadow: var(--sh-sm);
+      display: inline-block; font-family: var(--font-display); font-size: 15px; font-weight: 800; color: var(--ink);
+      background: var(--lime); border: var(--bd); border-radius: 9px; padding: 5px 12px; box-shadow: var(--sh-sm);
+      max-width: 170px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
     }
     .pseudo-box { margin: auto; max-width: 360px; width: 100%; text-align: center; background: var(--card); border: var(--bd); padding: 30px 26px; border-radius: 20px; box-shadow: var(--sh); }
     .pseudo-emoji { font-size: 52px; }
@@ -158,7 +170,7 @@
     .check { display: flex; align-items: center; gap: 10px; padding: 9px 4px; cursor: pointer; font-size: 14px; font-weight: 600; }
     .check input { width: 18px; height: 18px; accent-color: var(--pink); cursor: pointer; }
     .everyone { border-bottom: 2.5px solid var(--ink); margin-bottom: 6px; font-weight: 700; padding-bottom: 11px; }
-    .userlist { max-height: 160px; overflow-y: auto; }
+    .userlist { max-height: 200px; overflow-y: auto; }
     .userlist .empty { color: var(--muted); font-size: 13px; font-weight: 500; padding: 8px 4px; }
     .userlist.disabled { opacity: 0.4; pointer-events: none; }
 
@@ -187,7 +199,6 @@
     .me-text.sel { outline: 3px dashed var(--blue); outline-offset: 2px; }
     .editor-tools { display: flex; gap: 10px; justify-content: center; margin-bottom: 14px; flex-wrap: wrap; }
 
-    /* Boutons génériques */
     .btn {
       padding: 11px 15px; border-radius: 11px; font-family: var(--font-display); font-size: 14px; font-weight: 700;
       cursor: pointer; border: var(--bd); background: var(--card); color: var(--ink);
@@ -208,7 +219,7 @@
     .editor-actions { display: flex; gap: 12px; justify-content: center; margin-top: auto; padding-top: 8px; }
     .editor-actions .btn { min-width: 140px; text-align: center; }
 
-    /* ---- Onglets (biblio / musique / historique) ---- */
+    /* ---- Onglets ---- */
     .lib-tabs { display: flex; gap: 8px; justify-content: center; margin-bottom: 14px; flex-wrap: wrap; }
     .lib-tab {
       padding: 9px 15px; border-radius: 999px; font-family: var(--font-display); font-size: 13px; font-weight: 700;
@@ -228,7 +239,7 @@
     .gif-cat:hover { background: var(--paper2); }
     .gif-cat.active { background: var(--pink); color: #fff; }
     .lib-status { text-align: center; color: var(--muted); font-size: 13px; font-weight: 600; margin-bottom: 12px; }
-    .lib-grid { display: grid; gap: 10px; grid-template-columns: repeat(auto-fill, minmax(108px, 1fr)); }
+    .lib-grid { display: grid; gap: 10px; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); }
     .lib-cell {
       position: relative; aspect-ratio: 1 / 1; border-radius: 12px; overflow: hidden;
       cursor: pointer; background: var(--card); border: var(--bd); box-shadow: var(--sh-sm); transition: transform .1s, box-shadow .1s;
@@ -299,76 +310,77 @@
   </style>
 </head>
 <body>
-  <h1>📺 LiveChatr</h1>
-  <div class="sub">Balance une image en plein écran à tes potes connectés.</div>
-
-  <div class="card">
-    <label class="field">Ton pseudo</label>
-    <div id="pseudoDisplay" class="pseudo-display">—</div>
-  </div>
-
-  <div class="card">
-    <label class="field">Image à envoyer</label>
-    <div class="drop" id="drop">Clique ici pour choisir une image 🖼️</div>
-    <button id="openMeme" class="meme-btn">🎨 ou crée ton mème (image + texte)</button>
-    <button id="openLib" class="meme-btn">🐸 ou pioche dans les GIF &amp; mèmes</button>
-    <input id="file" type="file" accept="image/*" hidden />
-    <div class="preview" id="preview"></div>
-  </div>
-
-  <div class="card">
-    <label class="field">Durée d'affichage</label>
-    <div class="row">
-      <input id="dur" type="range" min="1" max="30" value="5" />
-      <span class="dur"><span id="durVal">5</span> s</span>
+  <header class="topbar">
+    <div class="brand">📺 LiveChatr</div>
+    <div class="topbar-right">
+      <span id="pseudoDisplay" class="pseudo-display">—</span>
+      <button id="openHistory" class="icon-btn" title="Historique &amp; classement">🏆</button>
     </div>
-  </div>
+  </header>
 
-  <div class="card">
-    <label class="field">Musique (optionnel)</label>
-    <button id="openMusic" class="meme-btn">🎵 Ajouter une musique</button>
-    <div class="music-chip" id="musicChip" hidden>
-      <span id="musicChipName"></span>
-      <button class="chip-x" id="musicRemove">✕</button>
+  <main class="content">
+    <div class="card">
+      <label class="field">Image à envoyer</label>
+      <div class="drop" id="drop">Clique ici pour choisir une image 🖼️</div>
+      <button id="openMeme" class="meme-btn">🎨 ou crée ton mème (image + texte)</button>
+      <button id="openLib" class="meme-btn">🐸 ou pioche dans les GIF &amp; mèmes</button>
+      <input id="file" type="file" accept="image/*" hidden />
+      <div class="preview" id="preview"></div>
     </div>
-    <div class="row" id="volumeRow" hidden style="margin-top: 12px;">
-      <label style="font-size:12px; color:var(--muted); min-width:64px;">🔊 Volume</label>
-      <input type="range" id="volume" min="0" max="100" value="100" />
-      <span class="dur"><span id="volVal">100</span>%</span>
-    </div>
-  </div>
 
-  <div class="card">
-    <div class="card-head">
-      <span class="title">Destinataires</span>
-      <span class="badge" id="onlineCount">0 en ligne</span>
-    </div>
-    <label class="check everyone">
-      <input type="checkbox" id="everyone" checked />
-      🌍 Tout le monde
-    </label>
-    <div class="userlist" id="userList"></div>
-  </div>
-
-  <button class="send" id="send" disabled>Envoyer 🚀</button>
-
-  <button id="openHistory" class="meme-btn" style="margin-top: 8px;">📜 Historique &amp; classement 🏆</button>
-
-  <div class="status">
-    <span class="dot" id="dot"></span>
-    <span id="statusText">Connexion…</span>
-  </div>
-
-  <details>
-    <summary>⚙️ Réglages serveur</summary>
-    <div class="card" style="margin-top: 8px;">
-      <label class="field">Adresse du serveur</label>
-      <input id="server" type="url" placeholder="wss://mon-serveur.onrender.com" />
-      <div class="sub" style="margin: 8px 0 0;">
-        Par défaut : ton serveur en ligne. Pour tester en local : <code>ws://localhost:8080</code>.
+    <div class="card">
+      <label class="field">Durée d'affichage</label>
+      <div class="row">
+        <input id="dur" type="range" min="1" max="30" value="5" />
+        <span class="dur"><span id="durVal">5</span> s</span>
       </div>
     </div>
-  </details>
+
+    <div class="card">
+      <label class="field">Musique (optionnel)</label>
+      <button id="openMusic" class="meme-btn">🎵 Ajouter une musique</button>
+      <div class="music-chip" id="musicChip" hidden>
+        <span id="musicChipName"></span>
+        <button class="chip-x" id="musicRemove">✕</button>
+      </div>
+      <div class="row" id="volumeRow" hidden style="margin-top: 12px;">
+        <label style="font-size:12px; color:var(--muted); min-width:64px;">🔊 Volume</label>
+        <input type="range" id="volume" min="0" max="100" value="100" />
+        <span class="dur"><span id="volVal">100</span>%</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <span class="title">Destinataires</span>
+        <span class="badge" id="onlineCount">0 en ligne</span>
+      </div>
+      <label class="check everyone">
+        <input type="checkbox" id="everyone" checked />
+        🌍 Tout le monde
+      </label>
+      <div class="userlist" id="userList"></div>
+    </div>
+
+    <details>
+      <summary>⚙️ Réglages serveur</summary>
+      <div class="card" style="margin-top: 8px;">
+        <label class="field">Adresse du serveur</label>
+        <input id="server" type="url" placeholder="wss://mon-serveur.onrender.com" />
+        <div class="sub" style="margin: 8px 0 0;">
+          Par défaut : ton serveur en ligne. Pour tester en local : <code>ws://localhost:8080</code>.
+        </div>
+      </div>
+    </details>
+  </main>
+
+  <footer class="footer">
+    <button class="send" id="send" disabled>Envoyer 🚀</button>
+    <div class="status">
+      <span class="dot" id="dot"></span>
+      <span id="statusText">Connexion…</span>
+    </div>
+  </footer>
 
   <!-- ===== Créateur de mèmes ===== -->
   <div class="editor-overlay" id="memeEditor" hidden>
