@@ -1,4 +1,6 @@
-const DEFAULT_SERVER = 'ws://localhost:8080';
+// Serveur relais en ligne (Render). Tes amis se connectent ici automatiquement.
+// Pour tester en local à la place : 'ws://localhost:8080'
+const DEFAULT_SERVER = 'wss://livechat-k7we.onrender.com';
 
 const els = {
   name: document.getElementById('name'),
