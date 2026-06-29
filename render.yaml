@@ -1,0 +1,11 @@
+# Plan Render : configure automatiquement le serveur relais LiveChatr.
+# Sur render.com → New → Blueprint → connecte ce repo → Apply.
+services:
+  - type: web
+    name: livechatr-server
+    runtime: node
+    plan: free
+    rootDir: server
+    buildCommand: npm install
+    startCommand: node index.js
+    autoDeploy: true

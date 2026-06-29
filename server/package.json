@@ -1,0 +1,12 @@
+{
+  "name": "livechatr-server",
+  "version": "1.0.0",
+  "description": "Serveur relais WebSocket pour LiveChatr",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "ws": "^8.18.0"
+  }
+}

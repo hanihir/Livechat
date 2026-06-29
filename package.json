@@ -1,0 +1,32 @@
+{
+  "name": "livechatr",
+  "version": "1.0.0",
+  "description": "Envoie une image en plein écran à tous tes amis connectés",
+  "main": "src/main.js",
+  "author": "Hani",
+  "scripts": {
+    "start": "electron .",
+    "server": "node server/index.js",
+    "dist": "electron-builder --win"
+  },
+  "devDependencies": {
+    "electron": "^33.2.0",
+    "electron-builder": "^25.1.8"
+  },
+  "build": {
+    "appId": "com.livechatr.app",
+    "productName": "LiveChatr",
+    "files": [
+      "src/**/*"
+    ],
+    "win": {
+      "target": "nsis"
+    },
+    "nsis": {
+      "oneClick": true,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": false,
+      "createDesktopShortcut": true
+    }
+  }
+}
