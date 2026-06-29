@@ -22,7 +22,7 @@ function createControlWindow() {
 }
 
 // Fenêtre "pop-up" : transparente, sans bordure, au-dessus de tout, au milieu de l'écran.
-function createOverlay({ image, duration, from }) {
+function createOverlay({ image, duration, from, audio, audioName }) {
   const display = screen.getPrimaryDisplay();
   const { x, y, width, height } = display.bounds;
 
@@ -47,6 +47,7 @@ function createOverlay({ image, duration, from }) {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
       nodeIntegration: false,
+      autoplayPolicy: 'no-user-gesture-required', // pour que la musique démarre toute seule
     },
   });
 
@@ -58,7 +59,7 @@ function createOverlay({ image, duration, from }) {
   overlay.loadFile(path.join(__dirname, 'overlay.html'));
 
   overlay.webContents.once('did-finish-load', () => {
-    overlay.webContents.send('overlay-data', { image, duration, from });
+    overlay.webContents.send('overlay-data', { image, duration, from, audio, audioName });
   });
 
   // Fermeture automatique après la durée (+ marge pour le fondu de sortie)

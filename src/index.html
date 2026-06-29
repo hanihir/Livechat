@@ -181,6 +181,28 @@
     }
     .lib-star:hover { background: rgba(0,0,0,.8); }
     .lib-star.on { color: #ffd23f; }
+
+    /* ---- Musique ---- */
+    .music-chip {
+      display: flex; align-items: center; gap: 8px; margin-top: 10px;
+      padding: 9px 12px; border-radius: 10px;
+      background: rgba(108,92,231,.15); border: 1px solid rgba(108,92,231,.4); font-size: 14px;
+    }
+    .music-chip[hidden] { display: none; }
+    .music-chip span { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .chip-x { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 16px; }
+    .track-list { max-width: 560px; margin: 0 auto; width: 100%; }
+    .track {
+      display: flex; align-items: center; gap: 12px; padding: 10px;
+      border-radius: 12px; background: var(--card); margin-bottom: 8px;
+    }
+    .track img { width: 48px; height: 48px; border-radius: 8px; object-fit: cover; background: #222; flex: 0 0 auto; }
+    .track .info { flex: 1; min-width: 0; }
+    .track .t { font-weight: 600; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .track .a { color: var(--muted); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .track .play { width: 38px; height: 38px; border-radius: 50%; border: none; cursor: pointer; background: #20223c; color: #fff; font-size: 15px; flex: 0 0 auto; }
+    .track .choose { padding: 8px 12px; border-radius: 9px; border: none; cursor: pointer; background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #fff; font-weight: 600; font-size: 13px; flex: 0 0 auto; }
+    .track .del { background: rgba(231,76,60,.18); border: 1px solid rgba(231,76,60,.5); color: #ffb4ab; border-radius: 9px; padding: 8px 10px; cursor: pointer; flex: 0 0 auto; }
   </style>
 </head>
 <body>
@@ -206,6 +228,15 @@
     <div class="row">
       <input id="dur" type="range" min="1" max="30" value="5" />
       <span class="dur"><span id="durVal">5</span> s</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <label class="field">Musique (optionnel)</label>
+    <button id="openMusic" class="meme-btn">🎵 Ajouter une musique</button>
+    <div class="music-chip" id="musicChip" hidden>
+      <span id="musicChipName"></span>
+      <button class="chip-x" id="musicRemove">✕</button>
     </div>
   </div>
 
@@ -293,7 +324,27 @@
     <button class="btn" id="libMore" style="display:none; margin:12px auto 0;">🔄 Plus de mèmes</button>
   </div>
 
+  <!-- ===== Sélecteur de musique ===== -->
+  <div class="editor-overlay" id="musicOverlay" hidden>
+    <div class="editor-head">
+      <span>🎵 Choisir une musique</span>
+      <button class="btn ghost" id="musicClose">✕</button>
+    </div>
+    <div class="lib-tabs">
+      <button class="lib-tab active" id="tabSearch">🔎 Rechercher</button>
+      <button class="lib-tab" id="tabMine">📁 Mes sons</button>
+    </div>
+    <div class="lib-search" id="musicSearchWrap">
+      <input type="text" id="musicQuery" placeholder="Titre ou artiste… (ex : Booba)" />
+    </div>
+    <button class="btn" id="musicImport" style="display:none; margin:0 auto 10px;">➕ Importer un son</button>
+    <input type="file" id="musicFile" accept="audio/*" hidden />
+    <div class="lib-status" id="musicStatus"></div>
+    <div class="track-list" id="trackList"></div>
+  </div>
+
   <script src="meme-editor.js"></script>
+  <script src="music.js"></script>
   <script src="gif-browser.js"></script>
   <script src="renderer.js"></script>
 </body>

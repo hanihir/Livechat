@@ -16,9 +16,13 @@ const els = {
   everyone: document.getElementById('everyone'),
   userList: document.getElementById('userList'),
   onlineCount: document.getElementById('onlineCount'),
+  musicChip: document.getElementById('musicChip'),
+  musicChipName: document.getElementById('musicChipName'),
+  musicRemove: document.getElementById('musicRemove'),
 };
 
 let imageData = null;
+let chosenAudio = null; // { src, name }
 let ws = null;
 let reconnectTimer = null;
 let myId = null;
@@ -66,6 +70,20 @@ document.getElementById('openMeme').addEventListener('click', () => {
 // --- Bibliothèque GIF & mèmes ---
 document.getElementById('openLib').addEventListener('click', () => {
   window.openLibrary(setReadyImage);
+});
+
+// --- Musique ---
+document.getElementById('openMusic').addEventListener('click', () => {
+  window.openMusic((track) => {
+    const label = track.artist ? `${track.name} — ${track.artist}` : track.name;
+    chosenAudio = { src: track.src, name: label };
+    els.musicChipName.textContent = '🎵 ' + label;
+    els.musicChip.hidden = false;
+  });
+});
+els.musicRemove.addEventListener('click', () => {
+  chosenAudio = null;
+  els.musicChip.hidden = true;
 });
 
 function loadImage(file) {
@@ -214,6 +232,8 @@ els.send.addEventListener('click', () => {
       image: imageData,
       duration: Number(els.dur.value),
       targets,
+      audio: chosenAudio ? chosenAudio.src : null,
+      audioName: chosenAudio ? chosenAudio.name : null,
     })
   );
 });
