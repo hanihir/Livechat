@@ -146,9 +146,9 @@
     .editor-actions .btn { min-width: 130px; text-align: center; }
 
     /* ---- Bibliothèque GIF & mèmes ---- */
-    .lib-tabs { display: flex; gap: 8px; justify-content: center; margin-bottom: 12px; }
+    .lib-tabs { display: flex; gap: 8px; justify-content: center; margin-bottom: 12px; flex-wrap: wrap; }
     .lib-tab {
-      padding: 9px 18px; border-radius: 999px; font-size: 14px; font-weight: 600;
+      padding: 8px 14px; border-radius: 999px; font-size: 13px; font-weight: 600;
       cursor: pointer; border: 1px solid rgba(255,255,255,.14);
       background: transparent; color: var(--muted);
     }
@@ -165,6 +165,14 @@
     }
     .lib-cell:hover { border-color: var(--accent2); transform: scale(1.03); }
     .lib-cell img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .lib-star {
+      position: absolute; top: 4px; right: 4px; width: 26px; height: 26px;
+      border: none; border-radius: 50%; cursor: pointer; padding: 0;
+      background: rgba(0,0,0,.55); color: #fff; font-size: 15px; line-height: 1;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .lib-star:hover { background: rgba(0,0,0,.8); }
+    .lib-star.on { color: #ffd23f; }
   </style>
 </head>
 <body>
@@ -263,17 +271,20 @@
       <button class="btn ghost" id="libClose">✕</button>
     </div>
     <div class="lib-tabs">
-      <button class="lib-tab active" id="tabMemes">🖼️ Mèmes</button>
+      <button class="lib-tab active" id="tabTemplates">🖼️ Templates</button>
+      <button class="lib-tab" id="tabMemes">😂 Mèmes</button>
       <button class="lib-tab" id="tabGifs">🐸 GIF</button>
+      <button class="lib-tab" id="tabFavoris">⭐ Favoris</button>
     </div>
-    <div class="lib-search">
+    <div class="lib-search" id="libSearchWrap">
       <input type="text" id="libQuery" placeholder="Cherche…" />
     </div>
     <div class="lib-key" id="libKeyWrap" style="display:none;">
-      <input type="text" id="libKey" placeholder="Colle ta clé Giphy gratuite ici" />
+      <input type="text" id="libKey" placeholder="Clé Giphy (déjà préremplie)" />
     </div>
     <div class="lib-status" id="libStatus"></div>
     <div class="lib-grid" id="libGrid"></div>
+    <button class="btn" id="libMore" style="display:none; margin:12px auto 0;">🔄 Plus de mèmes</button>
   </div>
 
   <script src="meme-editor.js"></script>
