@@ -28,6 +28,8 @@ const els = {
   posGrid: document.getElementById('posGrid'),
   memeSize: document.getElementById('memeSize'),
   memeSizeVal: document.getElementById('memeSizeVal'),
+  memeOpacity: document.getElementById('memeOpacity'),
+  memeOpacityVal: document.getElementById('memeOpacityVal'),
 };
 
 let imageData = null;
@@ -35,6 +37,7 @@ let chosenAudio = null; // { src, name }
 let chosenAudioVolume = 1; // 0..1, réglé par le curseur
 let chosenPos = 'center-center'; // position du mème à l'écran
 let chosenSize = 70; // taille du mème en % de l'écran
+let chosenOpacity = 100; // opacité du mème en % (100 = opaque)
 let chosenTexts = null; // couche texte (quand on légende un GIF)
 let chosenDrawing = null; // couche dessin/pinceau (quand on dessine sur un GIF)
 let incomingAudio = null; // musique en cours de lecture à la réception
@@ -126,6 +129,10 @@ POSITIONS.forEach(([pos, glyph]) => {
 els.memeSize.addEventListener('input', () => {
   chosenSize = Number(els.memeSize.value);
   els.memeSizeVal.textContent = els.memeSize.value;
+});
+els.memeOpacity.addEventListener('input', () => {
+  chosenOpacity = Number(els.memeOpacity.value);
+  els.memeOpacityVal.textContent = els.memeOpacity.value;
 });
 
 // --- Destinataires ---
@@ -312,6 +319,7 @@ function connect() {
         from: msg.from,
         pos: msg.pos,
         size: msg.size,
+        opacity: msg.opacity,
         texts: msg.texts,
         drawing: msg.drawing,
       });
@@ -346,6 +354,7 @@ els.send.addEventListener('click', async () => {
       audioVolume: chosenAudio ? chosenAudioVolume : 1,
       pos: chosenPos,
       size: chosenSize,
+      opacity: chosenOpacity,
       texts: chosenTexts,
       drawing: chosenDrawing,
     })

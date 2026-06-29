@@ -63,6 +63,7 @@ wss.on('connection', (ws) => {
         audioVolume: typeof msg.audioVolume === 'number' ? msg.audioVolume : 1,
         pos: msg.pos || 'center-center', // position à l'écran
         size: typeof msg.size === 'number' ? msg.size : 70, // taille en % de l'écran
+        opacity: typeof msg.opacity === 'number' ? msg.opacity : 100, // opacité en %
         texts: Array.isArray(msg.texts) ? msg.texts : null, // couche texte (pour les GIF)
         drawing: msg.drawing || null, // couche dessin/pinceau (pour les GIF)
       });

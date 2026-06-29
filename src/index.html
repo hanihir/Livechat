@@ -347,7 +347,7 @@
 
     <div class="card">
       <details>
-        <summary>📐 Placement &amp; taille du mème (optionnel)</summary>
+        <summary>📐 Placement, taille &amp; transparence (optionnel)</summary>
         <div style="margin-top: 14px;">
           <label class="field">Position à l'écran</label>
           <div class="posgrid" id="posGrid"></div>
@@ -355,6 +355,11 @@
           <div class="row">
             <input id="memeSize" type="range" min="20" max="100" value="70" />
             <span class="dur"><span id="memeSizeVal">70</span>%</span>
+          </div>
+          <label class="field" style="margin-top: 16px;">Transparence (opacité)</label>
+          <div class="row">
+            <input id="memeOpacity" type="range" min="20" max="100" value="100" />
+            <span class="dur"><span id="memeOpacityVal">100</span>%</span>
           </div>
         </div>
       </details>

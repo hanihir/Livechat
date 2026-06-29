@@ -1,5 +1,6 @@
 const wrap = document.querySelector('.wrap');
 const frame = document.getElementById('frame');
+const media = document.getElementById('media');
 const pic = document.getElementById('pic');
 const gdraw = document.getElementById('gdraw');
 const gtext = document.getElementById('gtext');
@@ -30,7 +31,10 @@ function renderTexts(texts) {
 }
 
 // On reçoit l'image + la durée + le pseudo + la position + la taille + la couche texte.
-window.api.onOverlayData(({ image, duration, from, pos, size, texts, drawing }) => {
+window.api.onOverlayData(({ image, duration, from, pos, size, opacity, texts, drawing }) => {
+  // Transparence du mème (l'image + ses calques ; le pseudo reste opaque)
+  media.style.opacity = Math.max(0.15, Math.min(1, (Number(opacity) || 100) / 100));
+
   // Quand l'image (ou le GIF) est chargée, on positionne la couche texte à la bonne taille.
   pic.onload = () => requestAnimationFrame(() => renderTexts(texts));
   pic.src = image;
