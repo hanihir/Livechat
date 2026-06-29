@@ -23,6 +23,28 @@ const els = {
 
 let imageData = null;
 let chosenAudio = null; // { src, name }
+let incomingAudio = null; // musique en cours de lecture à la réception
+
+// Joue la musique reçue depuis la fenêtre principale (lecture audio plus fiable
+// que dans la pop-up transparente), et l'arrête à la fin de la durée du mème.
+function playIncomingAudio(src, duration) {
+  if (incomingAudio) {
+    try { incomingAudio.pause(); } catch (_) {}
+    incomingAudio = null;
+  }
+  if (!src) return;
+  const audio = new Audio(src);
+  audio.volume = 1;
+  audio.play().catch(() => {});
+  incomingAudio = audio;
+  const ms = Math.max(1, Number(duration) || 5) * 1000;
+  setTimeout(() => {
+    if (incomingAudio === audio) {
+      try { audio.pause(); } catch (_) {}
+      incomingAudio = null;
+    }
+  }, ms);
+}
 let ws = null;
 let reconnectTimer = null;
 let myId = null;
@@ -206,7 +228,13 @@ function connect() {
       }
       renderUserList();
     } else if (msg.type === 'show' && msg.image) {
-      window.api.showOverlay({ image: msg.image, duration: msg.duration, from: msg.from });
+      window.api.showOverlay({
+        image: msg.image,
+        duration: msg.duration,
+        from: msg.from,
+        audioName: msg.audioName,
+      });
+      playIncomingAudio(msg.audio, msg.duration);
     }
   };
 }

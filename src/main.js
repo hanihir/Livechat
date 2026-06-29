@@ -19,6 +19,7 @@ function createControlWindow() {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
       nodeIntegration: false,
+      backgroundThrottling: false, // garde l'audio/les timers actifs même en arrière-plan
     },
   });
   controlWindow.setMenuBarVisibility(false);
