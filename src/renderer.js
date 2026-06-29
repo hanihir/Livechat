@@ -171,6 +171,30 @@ document.getElementById('openLib').addEventListener('click', () => {
   window.openLibrary(setReadyImage);
 });
 
+// --- Vidéo courte ---
+document.getElementById('openVideo').addEventListener('click', () =>
+  document.getElementById('videoFile').click()
+);
+document.getElementById('videoFile').addEventListener('change', (e) => {
+  const f = e.target.files[0];
+  e.target.value = '';
+  if (!f) return;
+  if (f.size > 11 * 1024 * 1024) {
+    alert('Vidéo trop lourde (max 11 Mo). Choisis un clip plus court / plus léger.');
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = () => {
+    imageData = reader.result; // data:video/...
+    chosenTexts = null;
+    chosenDrawing = null;
+    els.preview.innerHTML =
+      `<video src="${imageData}" muted autoplay loop playsinline style="max-width:100%;max-height:180px;border:var(--bd);border-radius:10px;"></video>`;
+    updateSendButton();
+  };
+  reader.readAsDataURL(f);
+});
+
 // --- Musique ---
 document.getElementById('openMusic').addEventListener('click', () => {
   window.openMusic((track) => {
@@ -368,7 +392,8 @@ els.send.addEventListener('click', async () => {
   );
 
   // Enregistre le mème dans l'historique partagé (vignette + version pleine taille).
-  if (window.SB && window.SB.configured()) {
+  // Les vidéos ne vont pas dans l'historique (trop lourdes / pas de vignette image).
+  if (window.SB && window.SB.configured() && !imageData.startsWith('data:video')) {
     const [thumb, full] = await Promise.all([makeThumb(imageData), makeFull(imageData)]);
     window.SB.addMeme(myName || 'Anonyme', thumb, full);
   }

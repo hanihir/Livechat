@@ -117,6 +117,7 @@
     .meme-btn:active { transform: translate(2px,2px); box-shadow: 1px 1px 0 var(--ink); }
     #openMeme { background: var(--lime); }
     #openLib { background: var(--blue); color: #fff; }
+    #openVideo { background: var(--coral); color: #fff; }
     #openMusic { background: var(--pink); color: #fff; }
 
     .preview { margin-top: 12px; text-align: center; }
@@ -334,7 +335,9 @@
       <div class="drop" id="drop">Clique ici pour choisir une image 🖼️</div>
       <button id="openMeme" class="meme-btn">🎨 ou crée ton mème (image + texte)</button>
       <button id="openLib" class="meme-btn">🐸 ou pioche dans les GIF &amp; mèmes</button>
+      <button id="openVideo" class="meme-btn">🎬 ou envoie une vidéo courte</button>
       <input id="file" type="file" accept="image/*" hidden />
+      <input id="videoFile" type="file" accept="video/*" hidden />
       <div class="preview" id="preview"></div>
     </div>
 

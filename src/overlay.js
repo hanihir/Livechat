@@ -2,6 +2,7 @@ const wrap = document.querySelector('.wrap');
 const frame = document.getElementById('frame');
 const media = document.getElementById('media');
 const pic = document.getElementById('pic');
+const vid = document.getElementById('vid');
 const gdraw = document.getElementById('gdraw');
 const gtext = document.getElementById('gtext');
 const caption = document.getElementById('caption');
@@ -35,20 +36,32 @@ window.api.onOverlayData(({ image, duration, from, pos, size, opacity, texts, dr
   // Transparence du mème (l'image + ses calques ; le pseudo reste opaque)
   media.style.opacity = Math.max(0.15, Math.min(1, (Number(opacity) || 100) / 100));
 
-  // Quand l'image (ou le GIF) est chargée, on positionne la couche texte à la bonne taille.
-  pic.onload = () => requestAnimationFrame(() => renderTexts(texts));
-  pic.src = image;
-
-  // Couche de dessin (pinceau) par-dessus le GIF
-  if (drawing) {
-    gdraw.src = drawing;
-    gdraw.style.display = 'block';
-  }
-
   // Taille du mème (en % de l'écran)
   const s = Math.max(15, Math.min(100, Number(size) || 70));
-  pic.style.maxWidth = s + 'vw';
-  pic.style.maxHeight = s + 'vh';
+  const isVideo = String(image).startsWith('data:video');
+
+  if (isVideo) {
+    // Vidéo : jouée avec le son
+    pic.style.display = 'none';
+    vid.style.display = 'block';
+    vid.style.maxWidth = s + 'vw';
+    vid.style.maxHeight = s + 'vh';
+    vid.src = image;
+    vid.play().catch(() => {});
+  } else {
+    vid.style.display = 'none';
+    pic.style.display = 'block';
+    pic.style.maxWidth = s + 'vw';
+    pic.style.maxHeight = s + 'vh';
+    // Quand l'image (ou le GIF) est chargée, on positionne la couche texte.
+    pic.onload = () => requestAnimationFrame(() => renderTexts(texts));
+    pic.src = image;
+    // Couche de dessin (pinceau) par-dessus le GIF
+    if (drawing) {
+      gdraw.src = drawing;
+      gdraw.style.display = 'block';
+    }
+  }
 
   // Position à l'écran (ex : "bottom-right", "top-center", "center-center")
   const [v, h] = String(pos || 'center-center').split('-');
