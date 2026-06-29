@@ -25,11 +25,16 @@ const els = {
   volumeRow: document.getElementById('volumeRow'),
   volume: document.getElementById('volume'),
   volVal: document.getElementById('volVal'),
+  posGrid: document.getElementById('posGrid'),
+  memeSize: document.getElementById('memeSize'),
+  memeSizeVal: document.getElementById('memeSizeVal'),
 };
 
 let imageData = null;
 let chosenAudio = null; // { src, name }
 let chosenAudioVolume = 1; // 0..1, réglé par le curseur
+let chosenPos = 'center-center'; // position du mème à l'écran
+let chosenSize = 70; // taille du mème en % de l'écran
 let incomingAudio = null; // musique en cours de lecture à la réception
 
 // Joue la musique reçue depuis la fenêtre principale (lecture audio plus fiable
@@ -97,6 +102,28 @@ els.server.addEventListener('change', () => {
 // --- Durée ---
 els.dur.addEventListener('input', () => {
   els.durVal.textContent = els.dur.value;
+});
+
+// --- Placement & taille du mème ---
+const POSITIONS = [
+  ['top-left', '↖'], ['top-center', '↑'], ['top-right', '↗'],
+  ['center-left', '←'], ['center-center', '●'], ['center-right', '→'],
+  ['bottom-left', '↙'], ['bottom-center', '↓'], ['bottom-right', '↘'],
+];
+POSITIONS.forEach(([pos, glyph]) => {
+  const cell = document.createElement('button');
+  cell.className = 'poscell' + (pos === chosenPos ? ' active' : '');
+  cell.textContent = glyph;
+  cell.addEventListener('click', () => {
+    chosenPos = pos;
+    [...els.posGrid.children].forEach((c) => c.classList.remove('active'));
+    cell.classList.add('active');
+  });
+  els.posGrid.appendChild(cell);
+});
+els.memeSize.addEventListener('input', () => {
+  chosenSize = Number(els.memeSize.value);
+  els.memeSizeVal.textContent = els.memeSize.value;
 });
 
 // --- Destinataires ---
@@ -270,6 +297,8 @@ function connect() {
         image: msg.image,
         duration: msg.duration,
         from: msg.from,
+        pos: msg.pos,
+        size: msg.size,
       });
       playIncomingAudio(msg.audio, msg.duration, msg.audioVolume);
     }
@@ -300,6 +329,8 @@ els.send.addEventListener('click', async () => {
       audio: chosenAudio ? chosenAudio.src : null,
       audioName: chosenAudio ? chosenAudio.name : null,
       audioVolume: chosenAudio ? chosenAudioVolume : 1,
+      pos: chosenPos,
+      size: chosenSize,
     })
   );
 

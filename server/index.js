@@ -61,6 +61,8 @@ wss.on('connection', (ws) => {
         audio: msg.audio || null, // URL d'extrait iTunes ou son importé (dataURL)
         audioName: msg.audioName || null,
         audioVolume: typeof msg.audioVolume === 'number' ? msg.audioVolume : 1,
+        pos: msg.pos || 'center-center', // position à l'écran
+        size: typeof msg.size === 'number' ? msg.size : 70, // taille en % de l'écran
       });
 
       // targets = liste d'identifiants ; vide/absent = tout le monde.
