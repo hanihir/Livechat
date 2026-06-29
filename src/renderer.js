@@ -19,22 +19,26 @@ const els = {
   musicChip: document.getElementById('musicChip'),
   musicChipName: document.getElementById('musicChipName'),
   musicRemove: document.getElementById('musicRemove'),
+  volumeRow: document.getElementById('volumeRow'),
+  volume: document.getElementById('volume'),
+  volVal: document.getElementById('volVal'),
 };
 
 let imageData = null;
 let chosenAudio = null; // { src, name }
+let chosenAudioVolume = 1; // 0..1, réglé par le curseur
 let incomingAudio = null; // musique en cours de lecture à la réception
 
 // Joue la musique reçue depuis la fenêtre principale (lecture audio plus fiable
 // que dans la pop-up transparente), et l'arrête à la fin de la durée du mème.
-function playIncomingAudio(src, duration) {
+function playIncomingAudio(src, duration, volume) {
   if (incomingAudio) {
     try { incomingAudio.pause(); } catch (_) {}
     incomingAudio = null;
   }
   if (!src) return;
   const audio = new Audio(src);
-  audio.volume = 1;
+  audio.volume = typeof volume === 'number' ? Math.max(0, Math.min(1, volume)) : 1;
   audio.play().catch(() => {});
   incomingAudio = audio;
   const ms = Math.max(1, Number(duration) || 5) * 1000;
@@ -101,11 +105,17 @@ document.getElementById('openMusic').addEventListener('click', () => {
     chosenAudio = { src: track.src, name: label };
     els.musicChipName.textContent = '🎵 ' + label;
     els.musicChip.hidden = false;
+    els.volumeRow.hidden = false;
   });
 });
 els.musicRemove.addEventListener('click', () => {
   chosenAudio = null;
   els.musicChip.hidden = true;
+  els.volumeRow.hidden = true;
+});
+els.volume.addEventListener('input', () => {
+  els.volVal.textContent = els.volume.value;
+  chosenAudioVolume = Number(els.volume.value) / 100;
 });
 
 function loadImage(file) {
@@ -232,9 +242,8 @@ function connect() {
         image: msg.image,
         duration: msg.duration,
         from: msg.from,
-        audioName: msg.audioName,
       });
-      playIncomingAudio(msg.audio, msg.duration);
+      playIncomingAudio(msg.audio, msg.duration, msg.audioVolume);
     }
   };
 }
@@ -262,6 +271,7 @@ els.send.addEventListener('click', () => {
       targets,
       audio: chosenAudio ? chosenAudio.src : null,
       audioName: chosenAudio ? chosenAudio.name : null,
+      audioVolume: chosenAudio ? chosenAudioVolume : 1,
     })
   );
 });

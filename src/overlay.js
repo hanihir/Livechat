@@ -2,15 +2,12 @@ const frame = document.getElementById('frame');
 const pic = document.getElementById('pic');
 const caption = document.getElementById('caption');
 
-// On reçoit l'image + la durée + le pseudo + le nom de la musique (jouée par la fenêtre principale).
-window.api.onOverlayData(({ image, duration, from, audioName }) => {
+// On reçoit l'image + la durée + le pseudo (la musique est jouée par la fenêtre principale).
+window.api.onOverlayData(({ image, duration, from }) => {
   pic.src = image;
 
-  const bits = [];
-  if (from) bits.push('📨 ' + from);
-  if (audioName) bits.push('🎵 ' + audioName);
-  if (bits.length) {
-    caption.textContent = bits.join('   •   ');
+  if (from) {
+    caption.textContent = '📨 ' + from;
     caption.style.display = 'block';
   }
 

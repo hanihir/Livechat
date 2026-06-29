@@ -60,6 +60,7 @@ wss.on('connection', (ws) => {
         from: ws.meta.name, // on fait confiance au serveur pour le pseudo
         audio: msg.audio || null, // URL d'extrait iTunes ou son importé (dataURL)
         audioName: msg.audioName || null,
+        audioVolume: typeof msg.audioVolume === 'number' ? msg.audioVolume : 1,
       });
 
       // targets = liste d'identifiants ; vide/absent = tout le monde.
