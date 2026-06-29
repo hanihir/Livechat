@@ -11,4 +11,12 @@ contextBridge.exposeInMainWorld('api', {
   httpJson: (url) => ipcRenderer.invoke('http-json', url),
   httpDataUrl: (url) => ipcRenderer.invoke('http-dataurl', url),
   httpRequest: (opts) => ipcRenderer.invoke('http-request', opts),
+
+  // --- Sondages ---
+  openPoll: (data) => ipcRenderer.send('poll-open', data), // contrôle -> main : ouvre la fenêtre
+  onPollData: (cb) => ipcRenderer.on('poll-data', (_e, d) => cb(d)), // main -> fenêtre sondage
+  castVote: (data) => ipcRenderer.send('poll-cast', data), // fenêtre sondage -> main
+  onPollVoteToControl: (cb) => ipcRenderer.on('poll-cast-to-control', (_e, d) => cb(d)), // main -> contrôle
+  sendPollTally: (data) => ipcRenderer.send('poll-tally-up', data), // contrôle -> main
+  onPollTally: (cb) => ipcRenderer.on('poll-tally', (_e, d) => cb(d)), // main -> fenêtre sondage
 });

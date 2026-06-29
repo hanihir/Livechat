@@ -6,6 +6,8 @@ const path = require('path');
 app.commandLine.appendSwitch('autoplay-policy', 'no-user-gesture-required');
 
 let controlWindow;
+let pollWindow = null;
+let lastPollTally = {}; // dernier décompte connu, pour le réenvoyer à l'ouverture
 let tray = null;
 let isQuitting = false; // vrai seulement quand on quitte vraiment (menu « Quitter »)
 const startHidden = process.argv.includes('--hidden'); // lancé au démarrage Windows = discret
@@ -135,6 +137,61 @@ app.whenReady().then(() => {
 // Demande venant de l'interface : afficher une pop-up
 ipcMain.on('show-overlay', (_event, payload) => {
   createOverlay(payload);
+});
+
+// --- Fenêtre de sondage (interactive : on clique pour voter) ---
+function createPollWindow(data) {
+  if (pollWindow && !pollWindow.isDestroyed()) pollWindow.close();
+  lastPollTally = {};
+
+  pollWindow = new BrowserWindow({
+    width: 780,
+    height: 580,
+    center: true,
+    frame: false,
+    transparent: true,
+    alwaysOnTop: true,
+    skipTaskbar: true,
+    resizable: false,
+    webPreferences: {
+      preload: path.join(__dirname, 'preload.js'),
+      contextIsolation: true,
+      nodeIntegration: false,
+    },
+  });
+  pollWindow.setAlwaysOnTop(true, 'screen-saver');
+  pollWindow.loadFile(path.join(__dirname, 'poll.html'));
+
+  pollWindow.webContents.once('did-finish-load', () => {
+    pollWindow.webContents.send('poll-data', data);
+    if (lastPollTally && lastPollTally.pollId === data.pollId) {
+      pollWindow.webContents.send('poll-tally', lastPollTally);
+    }
+  });
+
+  // Fermeture auto un peu après la fin du vote (pour laisser voir le résultat).
+  const ms = (Math.max(5, Number(data.duration) || 15) + 6) * 1000;
+  setTimeout(() => {
+    if (pollWindow && !pollWindow.isDestroyed()) pollWindow.close();
+  }, ms);
+}
+
+// Ouverture demandée par la fenêtre de contrôle (à la réception d'un sondage).
+ipcMain.on('poll-open', (_event, data) => createPollWindow(data));
+
+// Un vote cliqué dans la fenêtre de sondage -> on le renvoie à la fenêtre de contrôle (qui a le WebSocket).
+ipcMain.on('poll-cast', (_event, data) => {
+  if (controlWindow && !controlWindow.isDestroyed()) {
+    controlWindow.webContents.send('poll-cast-to-control', data);
+  }
+});
+
+// Décompte calculé par la fenêtre de contrôle -> on l'envoie à la fenêtre de sondage.
+ipcMain.on('poll-tally-up', (_event, data) => {
+  lastPollTally = data;
+  if (pollWindow && !pollWindow.isDestroyed()) {
+    pollWindow.webContents.send('poll-tally', data);
+  }
 });
 
 // Téléchargements depuis internet faits côté processus principal :

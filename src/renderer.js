@@ -324,6 +324,13 @@ function connect() {
         drawing: msg.drawing,
       });
       playIncomingAudio(msg.audio, msg.duration, msg.audioVolume);
+    } else if (msg.type === 'poll') {
+      polls[msg.pollId] = { voters: {} };
+      window.api.openPoll(msg);
+    } else if (msg.type === 'vote') {
+      const p = polls[msg.pollId] || (polls[msg.pollId] = { voters: {} });
+      p.voters[msg.voter] = msg.choice;
+      pushTally(msg.pollId);
     }
   };
 }
@@ -414,5 +421,41 @@ function makeThumb(dataUrl) {
 
 // Ouvre l'historique & le classement.
 document.getElementById('openHistory').addEventListener('click', () => window.openHistory());
+
+// --- Sondages (this or that) ---
+const polls = {}; // pollId -> { voters: { voterId: 'A'|'B' } }
+
+// La fenêtre de contrôle est la seule à avoir le WebSocket : elle lance le sondage…
+window.launchPoll = function (data) {
+  if (!ws || ws.readyState !== WebSocket.OPEN) return;
+  ws.send(JSON.stringify({
+    type: 'poll',
+    pollId: data.pollId,
+    question: data.question,
+    imageA: data.imageA,
+    imageB: data.imageB,
+    duration: data.duration,
+  }));
+};
+
+// …et relaie les votes cliqués dans la fenêtre de sondage.
+window.api.onPollVoteToControl(({ pollId, choice }) => {
+  if (ws && ws.readyState === WebSocket.OPEN) {
+    ws.send(JSON.stringify({ type: 'vote', pollId, choice }));
+  }
+});
+
+// Recalcule le décompte (anti-doublon par votant) et l'envoie à la fenêtre de sondage.
+function pushTally(pollId) {
+  const p = polls[pollId];
+  if (!p) return;
+  let a = 0;
+  let b = 0;
+  for (const v of Object.values(p.voters)) {
+    if (v === 'A') a++;
+    else if (v === 'B') b++;
+  }
+  window.api.sendPollTally({ pollId, a, b, myVote: p.voters[myId] || null });
+}
 
 connect();

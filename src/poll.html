@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=Hanken+Grotesk:wght@500;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --paper: #FBF1DE; --ink: #18140E; --lime: #C7F24E;
+      --pink: #FF5DA2; --blue: #4D7CFF; --yellow: #FFCC36; --muted: #6E655A;
+    }
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0; height: 100%; background: transparent;
+      font-family: 'Hanken Grotesk', system-ui, sans-serif;
+      -webkit-user-select: none; user-select: none;
+    }
+    .wrap { height: 100vh; display: flex; align-items: center; justify-content: center; padding: 16px; }
+    .card {
+      width: 100%; max-width: 740px; background: var(--paper);
+      border: 3px solid var(--ink); border-radius: 22px; box-shadow: 9px 9px 0 var(--ink); padding: 20px;
+    }
+    .head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+    .title { font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: 19px; }
+    .count { font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; background: var(--yellow); border: 2.5px solid var(--ink); border-radius: 999px; padding: 4px 14px; }
+    .x { border: 2.5px solid var(--ink); background: #fff; border-radius: 10px; width: 36px; height: 36px; cursor: pointer; font-size: 16px; font-weight: 800; }
+    .q { font-weight: 700; font-size: 19px; text-align: center; margin: 14px 0 16px; }
+    .opts { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .opt {
+      background: #fff; border: 3px solid var(--ink); border-radius: 16px;
+      box-shadow: 5px 5px 0 var(--ink); overflow: hidden; cursor: pointer; transition: transform .1s, box-shadow .1s;
+    }
+    .opt:hover { transform: translate(-2px, -2px); box-shadow: 7px 7px 0 var(--ink); }
+    .opt.mine { outline: 4px solid var(--blue); outline-offset: -2px; }
+    .opt.win { background: var(--lime); }
+    .opt img { width: 100%; height: 220px; object-fit: cover; display: block; border-bottom: 3px solid var(--ink); }
+    .bar-wrap { padding: 12px 14px; }
+    .bar { height: 18px; background: #efe7d4; border: 2.5px solid var(--ink); border-radius: 999px; overflow: hidden; }
+    .bar > i { display: block; height: 100%; width: 0; background: var(--pink); transition: width .35s; }
+    #optB .bar > i { background: var(--blue); }
+    .res { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: 15px; }
+    .res .badge { background: var(--lime); border: 2px solid var(--ink); border-radius: 999px; padding: 1px 9px; font-size: 12px; display: none; }
+    .opt.win .res .badge { display: inline-block; }
+    .hint { text-align: center; color: var(--muted); font-size: 13px; font-weight: 700; margin-top: 14px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <div class="head">
+        <span class="title" id="title">📊 Sondage</span>
+        <span class="count" id="count">15s</span>
+        <button class="x" id="close">✕</button>
+      </div>
+      <div class="q" id="question"></div>
+      <div class="opts">
+        <div class="opt" id="optA">
+          <img id="imgA" alt="A" />
+          <div class="bar-wrap">
+            <div class="bar"><i id="barA"></i></div>
+            <div class="res"><span id="pctA">0%</span><span class="badge">🏆 Gagnant</span><span id="cntA">0</span></div>
+          </div>
+        </div>
+        <div class="opt" id="optB">
+          <img id="imgB" alt="B" />
+          <div class="bar-wrap">
+            <div class="bar"><i id="barB"></i></div>
+            <div class="res"><span id="pctB">0%</span><span class="badge">🏆 Gagnant</span><span id="cntB">0</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="hint" id="hint">Clique sur une image pour voter !</div>
+    </div>
+  </div>
+  <script src="poll.js"></script>
+</body>
+</html>

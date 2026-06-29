@@ -27,6 +27,14 @@ function broadcastPresence() {
   }
 }
 
+// Envoie un objet à tous les clients connectés.
+function broadcastAll(obj) {
+  const s = JSON.stringify(obj);
+  for (const c of wss.clients) {
+    if (c.readyState === 1) c.send(s);
+  }
+}
+
 wss.on('connection', (ws) => {
   // Chaque client reçoit un identifiant unique + un pseudo par défaut.
   ws.meta = { id: crypto.randomUUID(), name: 'Anonyme' };
@@ -83,6 +91,31 @@ wss.on('connection', (ws) => {
           c.send(payload); // tout le monde
         }
       }
+      return;
+    }
+
+    // Sondage « this or that » : 2 images, diffusé à tout le monde.
+    if (msg.type === 'poll') {
+      broadcastAll({
+        type: 'poll',
+        pollId: msg.pollId,
+        question: String(msg.question || '').slice(0, 120),
+        imageA: msg.imageA,
+        imageB: msg.imageB,
+        duration: typeof msg.duration === 'number' ? msg.duration : 15,
+        from: ws.meta.name,
+      });
+      return;
+    }
+
+    // Vote : on diffuse à tous, avec l'id du votant (anti-doublon côté client).
+    if (msg.type === 'vote') {
+      broadcastAll({
+        type: 'vote',
+        pollId: msg.pollId,
+        choice: msg.choice === 'B' ? 'B' : 'A',
+        voter: ws.meta.id,
+      });
       return;
     }
   });
