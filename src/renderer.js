@@ -51,6 +51,15 @@ els.file.addEventListener('change', () => {
   if (f) loadImage(f);
 });
 
+// --- Créateur de mème : ouvre l'éditeur, récupère l'image finale ---
+document.getElementById('openMeme').addEventListener('click', () => {
+  window.openMemeEditor((dataUrl) => {
+    imageData = dataUrl;
+    els.preview.innerHTML = `<img src="${dataUrl}" alt="aperçu" />`;
+    updateSendButton();
+  });
+});
+
 function loadImage(file) {
   const reader = new FileReader();
   reader.onload = () => resizeImage(reader.result);
