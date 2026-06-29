@@ -59,7 +59,65 @@
     document.getElementById('pollLib' + slot).addEventListener('click', () => {
       window.openLibrary((r) => setOption(slot, r));
     });
+    // 4) Juste du texte -> on génère une carte texte
+    document.getElementById('pollText' + slot).addEventListener('click', () => {
+      prev[slot].innerHTML =
+        `<input type="text" id="ptin_${slot}" maxlength="60" placeholder="Ton texte…" style="width:100%; margin-bottom:6px;" />` +
+        `<button class="btn primary" id="ptok_${slot}" style="width:100%;">✓ OK</button>`;
+      const inp = document.getElementById('ptin_' + slot);
+      inp.focus();
+      const validate = () => {
+        const t = inp.value.trim();
+        if (t) setOption(slot, renderTextImage(t));
+      };
+      document.getElementById('ptok_' + slot).addEventListener('click', validate);
+      inp.addEventListener('keydown', (e) => { if (e.key === 'Enter') validate(); });
+    });
   });
+
+  // Transforme un texte en une carte image (style néo-brutaliste).
+  function renderTextImage(text) {
+    const W = 800, H = 600, pad = 70;
+    const c = document.createElement('canvas');
+    c.width = W; c.height = H;
+    const ctx = c.getContext('2d');
+    ctx.fillStyle = '#FBF1DE';
+    ctx.fillRect(0, 0, W, H);
+    ctx.strokeStyle = '#18140E';
+    ctx.lineWidth = 18;
+    ctx.strokeRect(9, 9, W - 18, H - 18);
+    ctx.fillStyle = '#18140E';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+
+    const maxW = W - pad * 2;
+    const maxH = H - pad * 2;
+    let font = 130;
+    let lines = [];
+    for (; font >= 26; font -= 4) {
+      ctx.font = `800 ${font}px 'Bricolage Grotesque', 'Arial Black', sans-serif`;
+      lines = wrapText(ctx, text, maxW);
+      const totalH = lines.length * font * 1.15;
+      if (totalH <= maxH && lines.every((l) => ctx.measureText(l).width <= maxW)) break;
+    }
+    const lineH = font * 1.15;
+    const startY = H / 2 - ((lines.length - 1) * lineH) / 2;
+    lines.forEach((l, i) => ctx.fillText(l, W / 2, startY + i * lineH));
+    return c.toDataURL('image/png');
+  }
+
+  function wrapText(ctx, text, maxW) {
+    const words = text.split(/\s+/);
+    const lines = [];
+    let cur = '';
+    for (const w of words) {
+      const t = cur ? cur + ' ' + w : w;
+      if (ctx.measureText(t).width <= maxW || !cur) cur = t;
+      else { lines.push(cur); cur = w; }
+    }
+    if (cur) lines.push(cur);
+    return lines;
+  }
 
   function resize(dataUrl, cb) {
     const im = new Image();
