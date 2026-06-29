@@ -51,13 +51,21 @@ els.file.addEventListener('change', () => {
   if (f) loadImage(f);
 });
 
-// --- Créateur de mème : ouvre l'éditeur, récupère l'image finale ---
+// Quand une image finale est prête (éditeur ou bibliothèque), on la met en attente d'envoi.
+function setReadyImage(dataUrl) {
+  imageData = dataUrl;
+  els.preview.innerHTML = `<img src="${dataUrl}" alt="aperçu" />`;
+  updateSendButton();
+}
+
+// --- Créateur de mème ---
 document.getElementById('openMeme').addEventListener('click', () => {
-  window.openMemeEditor((dataUrl) => {
-    imageData = dataUrl;
-    els.preview.innerHTML = `<img src="${dataUrl}" alt="aperçu" />`;
-    updateSendButton();
-  });
+  window.openMemeEditor(setReadyImage);
+});
+
+// --- Bibliothèque GIF & mèmes ---
+document.getElementById('openLib').addEventListener('click', () => {
+  window.openLibrary(setReadyImage);
 });
 
 function loadImage(file) {

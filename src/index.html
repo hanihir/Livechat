@@ -99,7 +99,7 @@
     .userlist .empty { color: var(--muted); font-size: 13px; padding: 8px 4px; }
     .userlist.disabled { opacity: 0.4; pointer-events: none; }
 
-    /* ---- Créateur de mèmes ---- */
+    /* ---- Overlays plein écran (éditeur + bibliothèque) ---- */
     .editor-overlay {
       position: fixed; inset: 0; z-index: 1000;
       background: rgba(8, 8, 18, 0.97);
@@ -108,6 +108,8 @@
     }
     .editor-overlay[hidden] { display: none; }
     .editor-head { display: flex; align-items: center; justify-content: space-between; font-size: 18px; font-weight: 700; margin-bottom: 14px; }
+
+    /* ---- Créateur de mèmes ---- */
     .editor-stage {
       position: relative; width: fit-content; max-width: 100%;
       margin: 0 auto 14px; border-radius: 10px;
@@ -124,7 +126,6 @@
       -webkit-user-select: none; user-select: none;
     }
     .me-text.sel { outline: 2px dashed var(--accent2); outline-offset: 2px; }
-
     .editor-tools { display: flex; gap: 8px; justify-content: center; margin-bottom: 12px; flex-wrap: wrap; }
     .btn {
       padding: 10px 14px; border-radius: 10px; font-size: 14px; font-weight: 600;
@@ -136,7 +137,6 @@
     .btn.primary { background: linear-gradient(135deg, var(--accent), var(--accent2)); border: none; color: #fff; }
     .btn.ghost { background: transparent; }
     .btn.danger { background: rgba(231,76,60,.18); border-color: rgba(231,76,60,.5); color: #ffb4ab; }
-
     .editor-textctrl { background: var(--card); border-radius: 14px; padding: 14px; margin: 0 auto 14px; max-width: 460px; }
     .editor-textctrl[hidden] { display: none; }
     .editor-textctrl .row { margin-top: 10px; }
@@ -144,6 +144,27 @@
     input[type=color] { width: 42px; height: 34px; border: none; background: none; cursor: pointer; padding: 0; }
     .editor-actions { display: flex; gap: 10px; justify-content: center; margin-top: auto; padding-top: 6px; }
     .editor-actions .btn { min-width: 130px; text-align: center; }
+
+    /* ---- Bibliothèque GIF & mèmes ---- */
+    .lib-tabs { display: flex; gap: 8px; justify-content: center; margin-bottom: 12px; }
+    .lib-tab {
+      padding: 9px 18px; border-radius: 999px; font-size: 14px; font-weight: 600;
+      cursor: pointer; border: 1px solid rgba(255,255,255,.14);
+      background: transparent; color: var(--muted);
+    }
+    .lib-tab.active { background: linear-gradient(135deg, var(--accent), var(--accent2)); border: none; color: #fff; }
+    .lib-search, .lib-key { max-width: 460px; margin: 0 auto 10px; width: 100%; }
+    .lib-status { text-align: center; color: var(--muted); font-size: 13px; margin-bottom: 10px; }
+    .lib-grid {
+      display: grid; gap: 8px;
+      grid-template-columns: repeat(auto-fill, minmax(108px, 1fr));
+    }
+    .lib-cell {
+      position: relative; aspect-ratio: 1 / 1; border-radius: 10px; overflow: hidden;
+      cursor: pointer; background: #15162a; border: 2px solid transparent; transition: .12s;
+    }
+    .lib-cell:hover { border-color: var(--accent2); transform: scale(1.03); }
+    .lib-cell img { width: 100%; height: 100%; object-fit: cover; display: block; }
   </style>
 </head>
 <body>
@@ -159,6 +180,7 @@
     <label class="field">Image à envoyer</label>
     <div class="drop" id="drop">Clique ici pour choisir une image 🖼️</div>
     <button id="openMeme" class="meme-btn">🎨 ou crée ton mème (image + texte)</button>
+    <button id="openLib" class="meme-btn">🐸 ou pioche dans les GIF &amp; mèmes</button>
     <input id="file" type="file" accept="image/*" hidden />
     <div class="preview" id="preview"></div>
   </div>
@@ -201,24 +223,21 @@
     </div>
   </details>
 
-  <!-- ===== Créateur de mèmes (caché par défaut) ===== -->
+  <!-- ===== Créateur de mèmes ===== -->
   <div class="editor-overlay" id="memeEditor" hidden>
     <div class="editor-head">
       <span>🎨 Créateur de mème</span>
       <button class="btn ghost" id="meEditClose">✕</button>
     </div>
-
     <div class="editor-stage" id="meStage">
       <div class="me-hint" id="meHint">Clique sur « 🖼️ Image » pour charger une image</div>
       <img id="meImage" alt="" />
     </div>
-
     <div class="editor-tools">
       <button class="btn" id="meLoad">🖼️ Image</button>
       <button class="btn" id="meAddText" disabled>➕ Ajouter du texte</button>
     </div>
     <input type="file" id="meFile" accept="image/*" hidden />
-
     <div class="editor-textctrl" id="meTextCtrl" hidden>
       <input type="text" id="meTextInput" placeholder="Ton texte…" />
       <div class="row">
@@ -231,14 +250,34 @@
         <button class="btn danger" id="meDelete" style="margin-left:auto;">🗑️ Supprimer</button>
       </div>
     </div>
-
     <div class="editor-actions">
       <button class="btn ghost" id="meCancel">Annuler</button>
       <button class="btn primary" id="meValidate">Valider le mème ✓</button>
     </div>
   </div>
 
+  <!-- ===== Bibliothèque GIF & mèmes ===== -->
+  <div class="editor-overlay" id="libOverlay" hidden>
+    <div class="editor-head">
+      <span>🐸 Bibliothèque GIF &amp; mèmes</span>
+      <button class="btn ghost" id="libClose">✕</button>
+    </div>
+    <div class="lib-tabs">
+      <button class="lib-tab active" id="tabMemes">🖼️ Mèmes</button>
+      <button class="lib-tab" id="tabGifs">🐸 GIF</button>
+    </div>
+    <div class="lib-search">
+      <input type="text" id="libQuery" placeholder="Cherche…" />
+    </div>
+    <div class="lib-key" id="libKeyWrap" style="display:none;">
+      <input type="text" id="libKey" placeholder="Colle ta clé Giphy gratuite ici" />
+    </div>
+    <div class="lib-status" id="libStatus"></div>
+    <div class="lib-grid" id="libGrid"></div>
+  </div>
+
   <script src="meme-editor.js"></script>
+  <script src="gif-browser.js"></script>
   <script src="renderer.js"></script>
 </body>
 </html>

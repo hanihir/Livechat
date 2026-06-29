@@ -80,6 +80,20 @@ ipcMain.on('show-overlay', (_event, payload) => {
   createOverlay(payload);
 });
 
+// Téléchargements depuis internet faits côté processus principal :
+// ça évite tous les soucis de CORS pour les API GIF/mèmes.
+ipcMain.handle('http-json', async (_event, url) => {
+  const res = await fetch(url);
+  return await res.json();
+});
+
+ipcMain.handle('http-dataurl', async (_event, url) => {
+  const res = await fetch(url);
+  const contentType = res.headers.get('content-type') || 'image/gif';
+  const buffer = Buffer.from(await res.arrayBuffer());
+  return `data:${contentType};base64,${buffer.toString('base64')}`;
+});
+
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') app.quit();
 });

@@ -22,11 +22,23 @@
   let selected = null;
   let hasImage = false;
 
-  window.openMemeEditor = function (cb) {
+  window.openMemeEditor = function (cb, startDataUrl) {
     reset();
     onDone = cb;
     overlay.hidden = false;
+    if (startDataUrl) loadImageSrc(startDataUrl); // image de départ (ex : template de mème)
   };
+
+  // Charge une image (depuis un fichier ou un template) dans l'éditeur.
+  function loadImageSrc(src) {
+    img.onload = () => {
+      hasImage = true;
+      img.style.display = 'block';
+      hint.style.display = 'none';
+      addTextBtn.disabled = false;
+    };
+    img.src = src;
+  }
 
   function reset() {
     blocks.forEach((b) => b.el.remove());
@@ -51,15 +63,7 @@
     const f = fileInput.files[0];
     if (!f) return;
     const reader = new FileReader();
-    reader.onload = () => {
-      img.onload = () => {
-        hasImage = true;
-        img.style.display = 'block';
-        hint.style.display = 'none';
-        addTextBtn.disabled = false;
-      };
-      img.src = reader.result;
-    };
+    reader.onload = () => loadImageSrc(reader.result);
     reader.readAsDataURL(f);
   });
 

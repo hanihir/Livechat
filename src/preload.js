@@ -7,4 +7,7 @@ contextBridge.exposeInMainWorld('api', {
   // La fenêtre pop-up reçoit l'image + la durée à afficher
   onOverlayData: (callback) =>
     ipcRenderer.on('overlay-data', (_event, data) => callback(data)),
+  // Télécharge du JSON / une image depuis internet (via le processus principal)
+  httpJson: (url) => ipcRenderer.invoke('http-json', url),
+  httpDataUrl: (url) => ipcRenderer.invoke('http-dataurl', url),
 });
