@@ -4,8 +4,8 @@
 // >>> À REMPLIR avec tes infos Supabase <<<
 //   - SUPABASE_URL  : le "Project URL"  (ex : https://abcd1234.supabase.co)
 //   - SUPABASE_ANON : la clé "anon public"
-const SUPABASE_URL = '';
-const SUPABASE_ANON = '';
+const SUPABASE_URL = 'https://kydghjlftojfenxmjgal.supabase.co';
+const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt5ZGdoamxmdG9qZmVueG1qZ2FsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI3NDYzMDAsImV4cCI6MjA5ODMyMjMwMH0.B6qzImrq4MOcBv8WJiPDxLFI1z4b5Ajp6qxAIAiG-MA';
 
 window.SB = {
   configured() {
