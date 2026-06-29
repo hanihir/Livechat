@@ -106,6 +106,38 @@ els.server.addEventListener('change', () => {
   connect();
 });
 
+// --- Réglages : ce qu'on accepte de recevoir ---
+const recv = (() => {
+  try { return JSON.parse(localStorage.getItem('recv') || '{}'); } catch (_) { return {}; }
+})();
+function getRecv(key) { return recv[key] !== false; } // par défaut : on reçoit tout
+[['recvMemes', 'memes'], ['recvVideos', 'videos'], ['recvPolls', 'polls'], ['recvSounds', 'sounds']]
+  .forEach(([id, key]) => {
+    const cb = document.getElementById(id);
+    cb.checked = getRecv(key);
+    cb.addEventListener('change', () => {
+      recv[key] = cb.checked;
+      localStorage.setItem('recv', JSON.stringify(recv));
+    });
+  });
+
+// --- Coller une image depuis le presse-papier (Ctrl+V) ---
+window.addEventListener('paste', (e) => {
+  const items = e.clipboardData && e.clipboardData.items;
+  if (!items) return;
+  for (const it of items) {
+    if (it.type && it.type.startsWith('image/')) {
+      const blob = it.getAsFile();
+      if (!blob) continue;
+      const reader = new FileReader();
+      reader.onload = () => resizeImage(reader.result);
+      reader.readAsDataURL(blob);
+      e.preventDefault();
+      return;
+    }
+  }
+});
+
 // --- Durée ---
 els.dur.addEventListener('input', () => {
   els.durVal.textContent = els.dur.value;
@@ -359,6 +391,9 @@ function connect() {
       }
       renderUserList();
     } else if (msg.type === 'show' && msg.image) {
+      // Réglages : on ignore si l'utilisateur a coupé la réception de ce type.
+      const isVid = String(msg.image).startsWith('data:video');
+      if ((isVid && !getRecv('videos')) || (!isVid && !getRecv('memes'))) return;
       window.api.showOverlay({
         image: msg.image,
         duration: msg.duration,
@@ -372,6 +407,7 @@ function connect() {
       });
       playIncomingAudio(msg.audio, msg.duration, msg.audioVolume);
     } else if (msg.type === 'poll') {
+      if (!getRecv('polls')) return;
       polls[msg.pollId] = { voters: {} };
       window.api.openPoll(msg);
     } else if (msg.type === 'vote') {

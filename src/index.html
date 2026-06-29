@@ -402,7 +402,14 @@
     </div>
 
     <details>
-      <summary>⚙️ Réglages serveur</summary>
+      <summary>⚙️ Réglages</summary>
+      <div class="card" style="margin-top: 8px;">
+        <label class="field">Ce que je reçois</label>
+        <label class="check"><input type="checkbox" id="recvMemes" checked /> 🖼️ Mèmes &amp; GIF</label>
+        <label class="check"><input type="checkbox" id="recvVideos" checked /> 🎬 Vidéos</label>
+        <label class="check"><input type="checkbox" id="recvPolls" checked /> 📊 Sondages</label>
+        <label class="check"><input type="checkbox" id="recvSounds" checked /> 🔊 Sons (soundboard)</label>
+      </div>
       <div class="card" style="margin-top: 8px;">
         <label class="field">Adresse du serveur</label>
         <input id="server" type="url" placeholder="wss://mon-serveur.onrender.com" />
