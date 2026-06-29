@@ -154,7 +154,7 @@
     }
     .lib-tab.active { background: linear-gradient(135deg, var(--accent), var(--accent2)); border: none; color: #fff; }
     .lib-search, .lib-key { max-width: 460px; margin: 0 auto 10px; width: 100%; }
-    .gif-cats { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 8px; scrollbar-width: thin; }
+    .gif-cats { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; justify-content: center; }
     .gif-cat {
       flex: 0 0 auto; white-space: nowrap; padding: 7px 13px; border-radius: 999px;
       font-size: 13px; font-weight: 600; cursor: pointer;
@@ -285,10 +285,7 @@
       <button class="lib-tab" id="tabFavoris">⭐ Favoris</button>
     </div>
     <div class="lib-search" id="libSearchWrap">
-      <input type="text" id="libQuery" placeholder="Cherche…" />
-    </div>
-    <div class="lib-key" id="libKeyWrap" style="display:none;">
-      <input type="text" id="libKey" placeholder="Clé Giphy (déjà préremplie)" />
+      <input type="text" id="libQuery" placeholder="Cherche un GIF…" />
     </div>
     <div class="gif-cats" id="gifCats" style="display:none;"></div>
     <div class="lib-status" id="libStatus"></div>
