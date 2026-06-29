@@ -1,6 +1,10 @@
 const { app, BrowserWindow, ipcMain, screen } = require('electron');
 const path = require('path');
 
+// Autorise la lecture audio automatique : sinon Chromium bloque le son
+// tant qu'il n'y a pas eu de clic dans la fenêtre (et la pop-up n'en a aucun).
+app.commandLine.appendSwitch('autoplay-policy', 'no-user-gesture-required');
+
 let controlWindow;
 
 // Fenêtre principale : l'interface où on choisit l'image, la durée, etc.
