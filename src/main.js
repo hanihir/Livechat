@@ -123,7 +123,9 @@ app.whenReady().then(() => {
   createTray();
   // Lancement automatique au démarrage de Windows (démarré masqué dans la barre système).
   if (app.isPackaged) {
-    app.setLoginItemSettings({ openAtLogin: true, args: ['--hidden'] });
+    // Pour un .exe portable, on pointe vers le vrai fichier (et pas la copie temporaire).
+    const exePath = process.env.PORTABLE_EXECUTABLE_FILE || process.execPath;
+    app.setLoginItemSettings({ openAtLogin: true, path: exePath, args: ['--hidden'] });
   }
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createControlWindow();

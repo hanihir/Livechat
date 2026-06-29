@@ -20,14 +20,11 @@
       "src/**/*"
     ],
     "win": {
-      "target": "nsis",
+      "target": "portable",
       "icon": "src/icon.ico"
     },
-    "nsis": {
-      "oneClick": true,
-      "perMachine": false,
-      "allowToChangeInstallationDirectory": false,
-      "createDesktopShortcut": true
+    "portable": {
+      "artifactName": "LiveChatr.exe"
     }
   }
 }
