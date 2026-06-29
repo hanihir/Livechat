@@ -2,6 +2,8 @@
 <html lang="fr">
 <head>
   <meta charset="utf-8" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&display=swap" rel="stylesheet" />
   <style>
     html, body {
       margin: 0;
@@ -25,30 +27,32 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 14px;
+      gap: 18px;
       opacity: 0;
-      transform: scale(0.82);
+      transform: scale(0.82) rotate(-1.5deg);
       transition: opacity 0.35s ease,
         transform 0.4s cubic-bezier(0.2, 0.9, 0.3, 1.3);
     }
-    .frame.show { opacity: 1; transform: scale(1); }
-    .frame.hide { opacity: 0; transform: scale(0.92); }
+    .frame.show { opacity: 1; transform: scale(1) rotate(-1.5deg); }
+    .frame.hide { opacity: 0; transform: scale(0.92) rotate(-1.5deg); }
     img {
       max-width: 70vw;
       max-height: 64vh;
       object-fit: contain;
-      border-radius: 16px;
-      box-shadow: 0 30px 90px rgba(0, 0, 0, 0.55);
+      border-radius: 14px;
+      border: 5px solid #FBF1DE;
+      box-shadow: 0 0 0 3px #18140E, 14px 14px 0 #18140E;
     }
     .caption {
-      font-family: 'Segoe UI', system-ui, sans-serif;
-      font-size: 20px;
-      font-weight: 700;
-      color: #fff;
-      background: linear-gradient(135deg, #6c5ce7, #00d2ff);
-      padding: 8px 18px;
+      font-family: 'Bricolage Grotesque', 'Arial Black', sans-serif;
+      font-size: 22px;
+      font-weight: 800;
+      color: #18140E;
+      background: #C7F24E;
+      padding: 9px 20px;
+      border: 3px solid #18140E;
       border-radius: 999px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+      box-shadow: 5px 5px 0 #18140E;
       display: none;
     }
   </style>
