@@ -168,9 +168,12 @@
     status.textContent = 'Chargement…';
     try {
       const dataUrl = await window.api.httpDataUrl(item.url);
-      if (item.kind === 'template') {
+      // Template (image fixe) ET GIF passent par l'éditeur pour pouvoir ajouter du texte
+      // (le GIF garde son animation, le texte est une couche par-dessus).
+      if (item.kind === 'template' || item.kind === 'gif') {
+        const cb = onDone;
         close();
-        window.openMemeEditor((finalUrl) => { if (onDone) onDone(finalUrl); }, dataUrl);
+        window.openMemeEditor((result) => { if (cb) cb(result); }, dataUrl);
       } else {
         if (onDone) onDone(dataUrl);
         close();

@@ -35,6 +35,7 @@ let chosenAudio = null; // { src, name }
 let chosenAudioVolume = 1; // 0..1, réglé par le curseur
 let chosenPos = 'center-center'; // position du mème à l'écran
 let chosenSize = 70; // taille du mème en % de l'écran
+let chosenTexts = null; // couche texte (quand on légende un GIF)
 let incomingAudio = null; // musique en cours de lecture à la réception
 
 // Joue la musique reçue depuis la fenêtre principale (lecture audio plus fiable
@@ -137,9 +138,16 @@ els.file.addEventListener('change', () => {
 });
 
 // Quand une image finale est prête (éditeur ou bibliothèque), on la met en attente d'envoi.
-function setReadyImage(dataUrl) {
-  imageData = dataUrl;
-  els.preview.innerHTML = `<img src="${dataUrl}" alt="aperçu" />`;
+function setReadyImage(result) {
+  if (result && typeof result === 'object') {
+    // GIF légendé : { gif, texts }
+    imageData = result.gif;
+    chosenTexts = Array.isArray(result.texts) ? result.texts : null;
+  } else {
+    imageData = result;
+    chosenTexts = null;
+  }
+  els.preview.innerHTML = `<img src="${imageData}" alt="aperçu" />`;
   updateSendButton();
 }
 
@@ -195,6 +203,7 @@ function resizeImage(dataUrl) {
     canvas.height = height;
     canvas.getContext('2d').drawImage(img, 0, 0, width, height);
     imageData = canvas.toDataURL('image/png');
+    chosenTexts = null;
     els.preview.innerHTML = `<img src="${imageData}" alt="aperçu" />`;
     updateSendButton();
   };
@@ -299,6 +308,7 @@ function connect() {
         from: msg.from,
         pos: msg.pos,
         size: msg.size,
+        texts: msg.texts,
       });
       playIncomingAudio(msg.audio, msg.duration, msg.audioVolume);
     }
@@ -331,6 +341,7 @@ els.send.addEventListener('click', async () => {
       audioVolume: chosenAudio ? chosenAudioVolume : 1,
       pos: chosenPos,
       size: chosenSize,
+      texts: chosenTexts,
     })
   );
 

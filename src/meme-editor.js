@@ -155,6 +155,22 @@
   validateBtn.addEventListener('click', () => {
     if (!hasImage) { close(); return; }
 
+    // GIF : on ne l'aplatit PAS (sinon on perd l'animation). On renvoie le GIF
+    // + une couche de texte (positions et tailles en % pour rester proportionnel).
+    if (img.src.startsWith('data:image/gif')) {
+      const stageH = stage.getBoundingClientRect().height || 1;
+      const texts = blocks.map((b) => ({
+        text: b.text,
+        xPct: b.xPct,
+        yPct: b.yPct,
+        sizePct: (b.size / stageH) * 100,
+        color: b.color,
+      }));
+      if (onDone) onDone({ gif: img.src, texts });
+      close();
+      return;
+    }
+
     const MAX = 1280;
     let w = img.naturalWidth;
     let h = img.naturalHeight;
