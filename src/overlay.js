@@ -36,23 +36,28 @@ window.api.onOverlayData(({ image, duration, from, pos, size, opacity, effect, t
   // Transparence du mème (l'image + ses calques ; le pseudo reste opaque)
   media.style.opacity = Math.max(0.15, Math.min(1, (Number(opacity) || 100) / 100));
 
-  // Taille du mème (en % de l'écran)
+  // Taille du mème (en % de l'écran). On force la largeur pour que ça marche aussi
+  // sur les petits GIF (sinon max-width ne fait que rétrécir, jamais agrandir).
   const s = Math.max(15, Math.min(100, Number(size) || 70));
+  const applySize = (elm) => {
+    elm.style.width = s + 'vw';
+    elm.style.height = 'auto';
+    elm.style.maxWidth = 'none';
+    elm.style.maxHeight = s + 'vh';
+  };
   const isVideo = String(image).startsWith('data:video');
 
   if (isVideo) {
     // Vidéo : jouée avec le son
     pic.style.display = 'none';
     vid.style.display = 'block';
-    vid.style.maxWidth = s + 'vw';
-    vid.style.maxHeight = s + 'vh';
+    applySize(vid);
     vid.src = image;
     vid.play().catch(() => {});
   } else {
     vid.style.display = 'none';
     pic.style.display = 'block';
-    pic.style.maxWidth = s + 'vw';
-    pic.style.maxHeight = s + 'vh';
+    applySize(pic);
     // Quand l'image (ou le GIF) est chargée, on positionne la couche texte.
     pic.onload = () => requestAnimationFrame(() => renderTexts(texts));
     pic.src = image;
