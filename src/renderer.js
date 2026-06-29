@@ -30,6 +30,7 @@ const els = {
   memeSizeVal: document.getElementById('memeSizeVal'),
   memeOpacity: document.getElementById('memeOpacity'),
   memeOpacityVal: document.getElementById('memeOpacityVal'),
+  fxGrid: document.getElementById('fxGrid'),
 };
 
 let imageData = null;
@@ -38,6 +39,7 @@ let chosenAudioVolume = 1; // 0..1, réglé par le curseur
 let chosenPos = 'center-center'; // position du mème à l'écran
 let chosenSize = 70; // taille du mème en % de l'écran
 let chosenOpacity = 100; // opacité du mème en % (100 = opaque)
+let chosenEffect = 'none'; // effet d'apparition
 let chosenTexts = null; // couche texte (quand on légende un GIF)
 let chosenDrawing = null; // couche dessin/pinceau (quand on dessine sur un GIF)
 let incomingAudio = null; // musique en cours de lecture à la réception
@@ -133,6 +135,23 @@ els.memeSize.addEventListener('input', () => {
 els.memeOpacity.addEventListener('input', () => {
   chosenOpacity = Number(els.memeOpacity.value);
   els.memeOpacityVal.textContent = els.memeOpacity.value;
+});
+
+// Effets d'apparition (chips)
+const EFFECTS = [
+  ['none', '✨ Aucun'], ['shake', '🫨 Tremblement'], ['glitch', '📺 Glitch'],
+  ['fall', '⬇️ Chute'], ['zoom', '🔍 Zoom'], ['spin', '🌀 Rotation'], ['pulse', '💓 Battement'],
+];
+EFFECTS.forEach(([id, label]) => {
+  const b = document.createElement('button');
+  b.className = 'gif-cat' + (id === chosenEffect ? ' active' : '');
+  b.textContent = label;
+  b.addEventListener('click', () => {
+    chosenEffect = id;
+    [...els.fxGrid.children].forEach((c) => c.classList.remove('active'));
+    b.classList.add('active');
+  });
+  els.fxGrid.appendChild(b);
 });
 
 // --- Destinataires ---
@@ -347,6 +366,7 @@ function connect() {
         pos: msg.pos,
         size: msg.size,
         opacity: msg.opacity,
+        effect: msg.effect,
         texts: msg.texts,
         drawing: msg.drawing,
       });
@@ -389,6 +409,7 @@ els.send.addEventListener('click', async () => {
       pos: chosenPos,
       size: chosenSize,
       opacity: chosenOpacity,
+      effect: chosenEffect,
       texts: chosenTexts,
       drawing: chosenDrawing,
     })

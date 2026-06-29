@@ -31,12 +31,30 @@
       align-items: center;
       gap: 18px;
       opacity: 0;
-      transform: scale(0.82) rotate(-1.5deg);
-      transition: opacity 0.35s ease,
-        transform 0.4s cubic-bezier(0.2, 0.9, 0.3, 1.3);
     }
-    .frame.show { opacity: 1; transform: scale(1) rotate(-1.5deg); }
-    .frame.hide { opacity: 0; transform: scale(0.92) rotate(-1.5deg); }
+    /* Effets d'apparition (animation sur .frame ; effets continus sur .media) */
+    .frame.fx-none  { animation: pop .45s cubic-bezier(.2,.9,.3,1.3) both; }
+    .frame.fx-fall  { animation: fall .8s cubic-bezier(.2,.7,.3,1.25) both; }
+    .frame.fx-zoom  { animation: zoomin .55s cubic-bezier(.2,.9,.3,1.4) both; }
+    .frame.fx-spin  { animation: spinin .75s cubic-bezier(.2,.8,.3,1.2) both; }
+    .frame.fx-shake { animation: pop .3s ease both; }
+    .frame.fx-shake .media { animation: shake .35s .3s infinite; }
+    .frame.fx-glitch { animation: pop .25s ease both; }
+    .frame.fx-glitch .media { animation: glitch .45s .25s infinite; }
+    .frame.fx-pulse { animation: pop .3s ease both; }
+    .frame.fx-pulse .media { animation: pulse 1s .3s infinite; }
+    .frame.hide, .frame.hide .media { animation: none !important; }
+    .frame.hide {
+      opacity: 0 !important; transform: scale(.9) rotate(-1.5deg) !important;
+      transition: opacity .35s ease, transform .35s ease;
+    }
+    @keyframes pop { from { opacity:0; transform: scale(.8) rotate(-1.5deg);} 60% { opacity:1; transform: scale(1.04) rotate(-1.5deg);} to { opacity:1; transform: scale(1) rotate(-1.5deg);} }
+    @keyframes fall { 0% { opacity:0; transform: translateY(-120vh) rotate(-8deg);} 70% { opacity:1; transform: translateY(22px) rotate(2deg);} 100% { opacity:1; transform: translateY(0) rotate(-1.5deg);} }
+    @keyframes zoomin { 0% { opacity:0; transform: scale(.08);} 70% { opacity:1; transform: scale(1.12) rotate(-1.5deg);} 100% { opacity:1; transform: scale(1) rotate(-1.5deg);} }
+    @keyframes spinin { 0% { opacity:0; transform: scale(.2) rotate(-540deg);} 100% { opacity:1; transform: scale(1) rotate(-1.5deg);} }
+    @keyframes shake { 0%,100% { transform: translate(0,0) rotate(0);} 20% { transform: translate(-7px,3px) rotate(-1.5deg);} 40% { transform: translate(7px,-3px) rotate(1.5deg);} 60% { transform: translate(-5px,-3px) rotate(-1deg);} 80% { transform: translate(5px,3px) rotate(1deg);} }
+    @keyframes glitch { 0%,100% { transform: translate(0,0) skewX(0);} 20% { transform: translate(-5px,0) skewX(7deg);} 40% { transform: translate(5px,0) skewX(-7deg);} 60% { transform: translate(-3px,2px) skewX(4deg);} 80% { transform: translate(3px,-2px) skewX(-4deg);} }
+    @keyframes pulse { 0%,100% { transform: scale(1);} 50% { transform: scale(1.07);} }
     .media { position: relative; display: inline-block; line-height: 0; }
     #pic, #vid {
       max-width: 70vw;

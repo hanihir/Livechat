@@ -32,7 +32,7 @@ function renderTexts(texts) {
 }
 
 // On reçoit l'image + la durée + le pseudo + la position + la taille + la couche texte.
-window.api.onOverlayData(({ image, duration, from, pos, size, opacity, texts, drawing }) => {
+window.api.onOverlayData(({ image, duration, from, pos, size, opacity, effect, texts, drawing }) => {
   // Transparence du mème (l'image + ses calques ; le pseudo reste opaque)
   media.style.opacity = Math.max(0.15, Math.min(1, (Number(opacity) || 100) / 100));
 
@@ -73,11 +73,10 @@ window.api.onOverlayData(({ image, duration, from, pos, size, opacity, texts, dr
     caption.style.display = 'block';
   }
 
-  requestAnimationFrame(() => frame.classList.add('show'));
+  requestAnimationFrame(() => frame.classList.add('fx-' + (effect || 'none')));
 
   const ms = Math.max(1, Number(duration) || 5) * 1000;
   setTimeout(() => {
-    frame.classList.remove('show');
     frame.classList.add('hide');
   }, ms);
 });
