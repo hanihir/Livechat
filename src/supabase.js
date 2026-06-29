@@ -53,6 +53,19 @@ window.SB = {
     return res.json || [];
   },
 
+  // --- Soundboard partagé ---
+  async getSounds() {
+    const res = await this._req('sounds?select=id,name,author,data&order=created_at.asc');
+    return res.json || [];
+  },
+  async addSound(name, author, data) {
+    return this._req('sounds', {
+      method: 'POST',
+      prefer: 'return=minimal',
+      body: { name, author, data },
+    });
+  },
+
   // Pose ou met à jour MA note (1 à 5) pour un mème.
   async rate(memeId, voter, stars) {
     return this._req('ratings?on_conflict=meme_id,voter', {

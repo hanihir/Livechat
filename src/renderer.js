@@ -414,6 +414,14 @@ function connect() {
       const p = polls[msg.pollId] || (polls[msg.pollId] = { voters: {} });
       p.voters[msg.voter] = msg.choice;
       pushTally(msg.pollId);
+    } else if (msg.type === 'sound') {
+      if (!getRecv('sounds')) return;
+      try {
+        const a = new Audio(msg.data);
+        a.volume = 1;
+        a.play().catch(() => {});
+      } catch (_) {}
+      showToast('🔊 ' + (msg.name || 'son') + (msg.from ? ' — ' + msg.from : ''));
     }
   };
 }
@@ -427,7 +435,15 @@ function updateSendButton() {
   const connected = ws && ws.readyState === WebSocket.OPEN;
   const hasTarget = els.everyone.checked || selectedTargets.size > 0;
   els.send.disabled = !(connected && imageData && hasTarget);
+  // bouton "éditer cette image" : visible si une image (pas une vidéo) est prête
+  const canEdit = imageData && !String(imageData).startsWith('data:video');
+  document.getElementById('editReady').hidden = !canEdit;
 }
+
+// Éditer l'image prête (collée, fichier, webcam…) dans l'éditeur de mème.
+document.getElementById('editReady').addEventListener('click', () => {
+  if (imageData) window.openMemeEditor(setReadyImage, imageData);
+});
 
 // --- Envoi ---
 els.send.addEventListener('click', async () => {
@@ -541,6 +557,23 @@ function pushTally(pollId) {
     else if (v === 'B') b++;
   }
   window.api.sendPollTally({ pollId, a, b, myVote: p.voters[myId] || null });
+}
+
+// --- Soundboard : envoyer un son à tout le monde ---
+window.sendSound = function (s) {
+  if (ws && ws.readyState === WebSocket.OPEN) {
+    ws.send(JSON.stringify({ type: 'sound', data: s.data, name: s.name }));
+  }
+};
+
+// Petit message éphémère (réception d'un son, etc.)
+let toastTimer = null;
+function showToast(text) {
+  const el = document.getElementById('toast');
+  el.textContent = text;
+  el.hidden = false;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { el.hidden = true; }, 2500);
 }
 
 connect();

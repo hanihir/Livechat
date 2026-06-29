@@ -119,6 +119,17 @@ wss.on('connection', (ws) => {
       });
       return;
     }
+
+    // Soundboard : on diffuse le son à tout le monde.
+    if (msg.type === 'sound') {
+      broadcastAll({
+        type: 'sound',
+        data: msg.data,
+        name: String(msg.name || 'son').slice(0, 40),
+        from: ws.meta.name,
+      });
+      return;
+    }
   });
 
   ws.on('close', () => {
