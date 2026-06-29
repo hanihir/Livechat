@@ -1,4 +1,4 @@
-// Bibliothèque : Templates (Imgflip), Mèmes (Reddit), GIF (Giphy), Favoris.
+// Bibliothèque : Templates (Imgflip), Mèmes (Reddit), GIF (Giphy, catégories + scroll infini), Favoris.
 // Expose window.openLibrary(callback) ; callback reçoit l'image choisie (dataURL).
 (function () {
   const overlay = document.getElementById('libOverlay');
@@ -11,6 +11,7 @@
   const query = document.getElementById('libQuery');
   const keyWrap = document.getElementById('libKeyWrap');
   const keyInput = document.getElementById('libKey');
+  const gifCats = document.getElementById('gifCats');
   const status = document.getElementById('libStatus');
   const grid = document.getElementById('libGrid');
   const moreBtn = document.getElementById('libMore');
@@ -18,11 +19,33 @@
   // Clé Giphy par défaut (intégrée) — surchargeable dans le champ.
   const DEFAULT_GIPHY_KEY = 'LTXZLRtn5BUnCCJ6wl4p4kHRsthhVoF4';
 
+  // Catégories de GIF (façon Insta) : libellé affiché + terme de recherche.
+  const GIF_CATS = [
+    { label: '🔥 Tendances', q: '' },
+    { label: '😂 MDR', q: 'lol' },
+    { label: '❤️ Amour', q: 'love' },
+    { label: '😭 Triste', q: 'sad' },
+    { label: '👋 Salut', q: 'hello' },
+    { label: '🎉 Fête', q: 'party' },
+    { label: '💀 Mort de rire', q: 'dead' },
+    { label: '😮 Wow', q: 'wow' },
+    { label: '👍 OK', q: 'ok' },
+    { label: '🕺 Danse', q: 'dance' },
+    { label: '😎 Cool', q: 'cool' },
+    { label: '🤔 Hmm', q: 'thinking' },
+    { label: '😡 Énervé', q: 'angry' },
+    { label: '🥳 Bravo', q: 'congrats' },
+    { label: '🙄 Blasé', q: 'whatever' },
+    { label: '🐱 Chat', q: 'cat' },
+  ];
+
   let onDone = null;
   let mode = 'templates';
   let templatesCache = null;
   let redditItems = [];
   let searchTimer = null;
+  // état de pagination des GIF
+  let gif = { q: '', offset: 0, total: Infinity, loading: false, token: 0 };
 
   window.openLibrary = function (cb) {
     onDone = cb;
@@ -35,7 +58,7 @@
   keyInput.value = localStorage.getItem('giphyKey') || DEFAULT_GIPHY_KEY;
   keyInput.addEventListener('change', () => {
     localStorage.setItem('giphyKey', keyInput.value.trim());
-    if (mode === 'gifs') loadGifs();
+    if (mode === 'gifs') loadGifs(true);
   });
 
   tabTemplates.addEventListener('click', () => setMode('templates'));
@@ -47,8 +70,22 @@
   query.addEventListener('input', () => {
     clearTimeout(searchTimer);
     if (mode === 'templates') renderTemplates();
-    else if (mode === 'gifs') searchTimer = setTimeout(loadGifs, 450);
+    else if (mode === 'gifs') {
+      // recherche libre => on enlève la catégorie active
+      [...gifCats.children].forEach((x) => x.classList.remove('active'));
+      searchTimer = setTimeout(() => loadGifs(true), 450);
+    }
   });
+
+  // Scroll infini (GIF + Mèmes)
+  overlay.addEventListener('scroll', () => {
+    const nearBottom = overlay.scrollTop + overlay.clientHeight >= overlay.scrollHeight - 320;
+    if (!nearBottom) return;
+    if (mode === 'gifs') fetchGifPage();
+    else if (mode === 'memes') loadReddit(true);
+  });
+
+  buildCats();
 
   function setMode(m) {
     mode = m;
@@ -58,15 +95,35 @@
     tabFavoris.classList.toggle('active', m === 'favoris');
     searchWrap.style.display = (m === 'templates' || m === 'gifs') ? 'block' : 'none';
     keyWrap.style.display = (m === 'gifs') ? 'block' : 'none';
+    gifCats.style.display = (m === 'gifs') ? 'flex' : 'none';
     moreBtn.style.display = (m === 'memes') ? 'block' : 'none';
     query.value = '';
-    query.placeholder = m === 'templates' ? 'Filtrer les templates…' : 'Cherche un GIF… (dance, cat, lol)';
+    query.placeholder = m === 'templates' ? 'Filtrer les templates…' : 'Cherche un GIF…';
     grid.innerHTML = '';
     status.textContent = '';
+    overlay.scrollTop = 0;
     if (m === 'templates') loadTemplates();
     else if (m === 'memes') loadReddit(false);
-    else if (m === 'gifs') loadGifs();
-    else loadFavs();
+    else if (m === 'gifs') {
+      [...gifCats.children].forEach((x, i) => x.classList.toggle('active', i === 0));
+      loadGifs(true);
+    } else loadFavs();
+  }
+
+  function buildCats() {
+    gifCats.innerHTML = '';
+    GIF_CATS.forEach((c, i) => {
+      const b = document.createElement('button');
+      b.className = 'gif-cat' + (i === 0 ? ' active' : '');
+      b.textContent = c.label;
+      b.addEventListener('click', () => {
+        query.value = c.q;
+        [...gifCats.children].forEach((x) => x.classList.remove('active'));
+        b.classList.add('active');
+        loadGifs(true);
+      });
+      gifCats.appendChild(b);
+    });
   }
 
   // ---------- Favoris (localStorage) ----------
@@ -84,7 +141,7 @@
     setFavs(arr);
   }
 
-  // ---------- Une cellule (avec étoile favori) ----------
+  // ---------- Une cellule (étoile + animation au survol) ----------
   function makeCell(item) {
     const cell = document.createElement('div');
     cell.className = 'lib-cell';
@@ -93,6 +150,10 @@
     im.src = item.preview;
     im.loading = 'lazy';
     if (item.name) im.title = item.name;
+    if (item.hover) {
+      im.addEventListener('mouseenter', () => { im.src = item.hover; });
+      im.addEventListener('mouseleave', () => { im.src = item.preview; });
+    }
     cell.appendChild(im);
 
     const star = document.createElement('button');
@@ -115,26 +176,21 @@
     return cell;
   }
 
-  // ---------- Sélection d'un élément ----------
   async function pick(item) {
     status.textContent = 'Chargement…';
     try {
       const dataUrl = await window.api.httpDataUrl(item.url);
       if (item.kind === 'template') {
-        // image fixe → on ouvre l'éditeur pour la légender
         close();
         window.openMemeEditor((finalUrl) => { if (onDone) onDone(finalUrl); }, dataUrl);
       } else {
-        // mème prêt ou GIF → envoi direct
         if (onDone) onDone(dataUrl);
         close();
       }
-    } catch (e) {
-      status.textContent = 'Échec du chargement.';
-    }
+    } catch (e) { status.textContent = 'Échec du chargement.'; }
   }
 
-  // ---------- Onglet Templates (Imgflip) ----------
+  // ---------- Templates (Imgflip) ----------
   async function loadTemplates() {
     if (!templatesCache) {
       status.textContent = 'Chargement…';
@@ -155,9 +211,10 @@
     );
   }
 
-  // ---------- Onglet Mèmes (Reddit, sans clé) ----------
+  // ---------- Mèmes (Reddit) ----------
   async function loadReddit(append) {
-    if (!append) redditItems = [];
+    if (gif.loading && append) return; // évite les doublons de requêtes pendant le scroll
+    if (!append) { redditItems = []; grid.innerHTML = ''; }
     status.textContent = 'Chargement des mèmes…';
     try {
       const j = await window.api.httpJson('https://meme-api.com/gimme/50');
@@ -169,43 +226,70 @@
         redditItems.push({ kind: 'image', url: m.url, preview: m.url, name: m.title });
       }
     } catch (e) { status.textContent = 'Impossible de charger les mèmes.'; return; }
-    status.textContent = redditItems.length + ' mèmes — clique pour envoyer';
+    status.textContent = redditItems.length + ' mèmes — défile pour en voir plus';
     grid.innerHTML = '';
     redditItems.forEach((it) => grid.appendChild(makeCell(it)));
   }
 
-  // ---------- Onglet GIF (Giphy) ----------
-  async function loadGifs() {
+  // ---------- GIF (Giphy, catégories + scroll infini) ----------
+  function loadGifs(reset) {
+    if (reset) {
+      gif.q = query.value.trim();
+      gif.offset = 0;
+      gif.total = Infinity;
+      gif.token++;
+      grid.innerHTML = '';
+    }
+    fetchGifPage();
+  }
+
+  async function fetchGifPage() {
+    if (gif.loading || gif.offset >= gif.total) return;
+    gif.loading = true;
+    const token = gif.token;
     const key = (localStorage.getItem('giphyKey') || DEFAULT_GIPHY_KEY).trim();
-    const q = query.value.trim();
-    const base = q ? 'search' : 'trending';
+    const base = gif.q ? 'search' : 'trending';
     const url =
       'https://api.giphy.com/v1/gifs/' + base +
       '?api_key=' + encodeURIComponent(key) +
-      (q ? '&q=' + encodeURIComponent(q) : '') +
-      '&limit=24&rating=pg-13';
-    status.textContent = 'Recherche…';
+      (gif.q ? '&q=' + encodeURIComponent(gif.q) : '') +
+      '&limit=50&offset=' + gif.offset + '&rating=pg-13';
+
+    if (gif.offset === 0) status.textContent = 'Chargement…';
     try {
       const j = await window.api.httpJson(url);
+      if (token !== gif.token) { gif.loading = false; return; } // une autre recherche a démarré
       if (j.meta && j.meta.status !== 200) {
-        grid.innerHTML = '';
         status.textContent = 'Clé Giphy refusée (' + j.meta.status + ').';
-        return;
+        gif.loading = false; return;
       }
       const data = j.data || [];
-      status.textContent = data.length ? data.length + ' GIF' : 'Aucun résultat.';
-      grid.innerHTML = '';
+      if (j.pagination && typeof j.pagination.total_count === 'number') {
+        gif.total = j.pagination.total_count;
+      }
+      gif.offset += data.length;
       for (const g of data) {
         const im = g.images || {};
-        const prev = (im.fixed_width_small || im.fixed_width || im.downsized || {}).url;
+        const still = (im.fixed_width_small_still || im.fixed_width_still || {}).url;
+        const anim = (im.fixed_width_small || im.fixed_width || im.downsized || {}).url;
         const full = (im.downsized || im.fixed_height || im.original || {}).url;
-        if (!prev || !full) continue;
-        grid.appendChild(makeCell({ kind: 'gif', url: full, preview: prev }));
+        if (!anim || !full) continue;
+        grid.appendChild(makeCell({ kind: 'gif', url: full, preview: still || anim, hover: anim }));
       }
-    } catch (e) { grid.innerHTML = ''; status.textContent = 'Erreur réseau.'; }
+      if (gif.offset === 0 || (data.length === 0 && grid.children.length === 0)) {
+        status.textContent = 'Aucun résultat.';
+      } else {
+        status.textContent = grid.children.length + ' GIF — défile pour en voir plus';
+      }
+      gif.loading = false;
+      // si la grille ne remplit pas l'écran, on charge encore une page
+      if (overlay.scrollHeight <= overlay.clientHeight + 40 && gif.offset < gif.total) {
+        fetchGifPage();
+      }
+    } catch (e) { status.textContent = 'Erreur réseau.'; gif.loading = false; }
   }
 
-  // ---------- Onglet Favoris ----------
+  // ---------- Favoris ----------
   function loadFavs() {
     const favs = getFavs();
     status.textContent = favs.length

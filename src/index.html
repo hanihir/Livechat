@@ -154,6 +154,14 @@
     }
     .lib-tab.active { background: linear-gradient(135deg, var(--accent), var(--accent2)); border: none; color: #fff; }
     .lib-search, .lib-key { max-width: 460px; margin: 0 auto 10px; width: 100%; }
+    .gif-cats { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 8px; scrollbar-width: thin; }
+    .gif-cat {
+      flex: 0 0 auto; white-space: nowrap; padding: 7px 13px; border-radius: 999px;
+      font-size: 13px; font-weight: 600; cursor: pointer;
+      border: 1px solid rgba(255,255,255,.14); background: #20223c; color: var(--text);
+    }
+    .gif-cat:hover { background: #2a2d4d; }
+    .gif-cat.active { background: linear-gradient(135deg, var(--accent), var(--accent2)); border: none; color: #fff; }
     .lib-status { text-align: center; color: var(--muted); font-size: 13px; margin-bottom: 10px; }
     .lib-grid {
       display: grid; gap: 8px;
@@ -282,6 +290,7 @@
     <div class="lib-key" id="libKeyWrap" style="display:none;">
       <input type="text" id="libKey" placeholder="Clé Giphy (déjà préremplie)" />
     </div>
+    <div class="gif-cats" id="gifCats" style="display:none;"></div>
     <div class="lib-status" id="libStatus"></div>
     <div class="lib-grid" id="libGrid"></div>
     <button class="btn" id="libMore" style="display:none; margin:12px auto 0;">🔄 Plus de mèmes</button>
