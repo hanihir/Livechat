@@ -100,6 +100,19 @@ ipcMain.handle('http-dataurl', async (_event, url) => {
   return `data:${contentType};base64,${buffer.toString('base64')}`;
 });
 
+// Requête HTTP générique (GET/POST/PATCH…) — utilisée pour la base Supabase.
+ipcMain.handle('http-request', async (_event, { url, method, headers, body }) => {
+  const res = await fetch(url, {
+    method: method || 'GET',
+    headers: headers || {},
+    body: body != null ? JSON.stringify(body) : undefined,
+  });
+  const text = await res.text();
+  let json = null;
+  try { json = text ? JSON.parse(text) : null; } catch (_) {}
+  return { ok: res.ok, status: res.status, json, text };
+});
+
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') app.quit();
 });

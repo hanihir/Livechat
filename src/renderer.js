@@ -260,7 +260,7 @@ function updateSendButton() {
 }
 
 // --- Envoi ---
-els.send.addEventListener('click', () => {
+els.send.addEventListener('click', async () => {
   if (!ws || ws.readyState !== WebSocket.OPEN || !imageData) return;
   const targets = els.everyone.checked ? [] : [...selectedTargets];
   ws.send(
@@ -274,6 +274,37 @@ els.send.addEventListener('click', () => {
       audioVolume: chosenAudio ? chosenAudioVolume : 1,
     })
   );
+
+  // Enregistre le mème dans l'historique partagé (vignette légère).
+  if (window.SB && window.SB.configured()) {
+    const thumb = await makeThumb(imageData);
+    window.SB.addMeme(els.name.value || 'Anonyme', thumb);
+  }
 });
+
+// Fabrique une petite vignette (pour l'historique) à partir de l'image envoyée.
+function makeThumb(dataUrl) {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => {
+      const MAX = 360;
+      let w = img.width;
+      let h = img.height;
+      const r = Math.min(1, MAX / Math.max(w, h));
+      w = Math.round(w * r);
+      h = Math.round(h * r);
+      const canvas = document.createElement('canvas');
+      canvas.width = w;
+      canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      resolve(canvas.toDataURL('image/jpeg', 0.8));
+    };
+    img.onerror = () => resolve(dataUrl);
+    img.src = dataUrl;
+  });
+}
+
+// Ouvre l'historique & le classement.
+document.getElementById('openHistory').addEventListener('click', () => window.openHistory());
 
 connect();

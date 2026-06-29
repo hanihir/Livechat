@@ -10,4 +10,5 @@ contextBridge.exposeInMainWorld('api', {
   // Télécharge du JSON / une image depuis internet (via le processus principal)
   httpJson: (url) => ipcRenderer.invoke('http-json', url),
   httpDataUrl: (url) => ipcRenderer.invoke('http-dataurl', url),
+  httpRequest: (opts) => ipcRenderer.invoke('http-request', opts),
 });
