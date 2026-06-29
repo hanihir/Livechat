@@ -33,14 +33,7 @@
       padding: 16px;
       margin-bottom: 14px;
     }
-    label {
-      display: block;
-      font-size: 12px;
-      color: var(--muted);
-      margin-bottom: 6px;
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-    }
+    label.field { display: block; font-size: 12px; color: var(--muted); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.04em; }
     input[type=text], input[type=url] {
       width: 100%;
       padding: 10px 12px;
@@ -61,21 +54,12 @@
       transition: 0.15s;
       color: var(--muted);
     }
-    .drop:hover {
-      border-color: var(--accent);
-      color: var(--text);
-      background: rgba(108, 92, 231, 0.08);
-    }
+    .drop:hover { border-color: var(--accent); color: var(--text); background: rgba(108, 92, 231, 0.08); }
     .preview { margin-top: 12px; text-align: center; }
     .preview img { max-width: 100%; max-height: 180px; border-radius: 10px; }
     .row { display: flex; align-items: center; gap: 12px; }
     input[type=range] { flex: 1; accent-color: var(--accent); }
-    .dur {
-      font-variant-numeric: tabular-nums;
-      font-weight: 700;
-      min-width: 54px;
-      text-align: right;
-    }
+    .dur { font-variant-numeric: tabular-nums; font-weight: 700; min-width: 54px; text-align: right; }
     button.send {
       width: 100%;
       padding: 14px;
@@ -90,46 +74,65 @@
     }
     button.send:hover { transform: translateY(-1px); }
     button.send:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
-    .status {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 13px;
-      color: var(--muted);
-      margin-top: 12px;
-    }
+    .status { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); margin-top: 12px; }
     .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--bad); transition: 0.2s; }
     .dot.on { background: var(--ok); box-shadow: 0 0 10px var(--ok); }
     details { margin-top: 8px; }
     summary { cursor: pointer; color: var(--muted); font-size: 12px; }
     code { background: rgba(255,255,255,.08); padding: 1px 5px; border-radius: 5px; }
+
+    /* En-tête de carte avec compteur */
+    .card-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+    .card-head .title { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
+    .badge { background: rgba(108,92,231,.25); color: #c9c2ff; font-size: 12px; font-weight: 700; padding: 2px 9px; border-radius: 999px; }
+
+    /* Choix des destinataires */
+    .check { display: flex; align-items: center; gap: 10px; padding: 9px 4px; cursor: pointer; font-size: 14px; }
+    .check input { width: 17px; height: 17px; accent-color: var(--accent); cursor: pointer; }
+    .everyone { border-bottom: 1px solid rgba(255,255,255,.08); margin-bottom: 4px; font-weight: 600; }
+    .userlist { max-height: 160px; overflow-y: auto; }
+    .userlist .me { color: var(--muted); }
+    .userlist .empty { color: var(--muted); font-size: 13px; padding: 8px 4px; }
+    .userlist.disabled { opacity: 0.4; pointer-events: none; }
   </style>
 </head>
 <body>
   <h1>📺 LiveChatr</h1>
-  <div class="sub">Balance une image en plein écran à tous tes potes connectés.</div>
+  <div class="sub">Balance une image en plein écran à tes potes connectés.</div>
 
   <div class="card">
-    <label>Ton pseudo</label>
-    <input id="name" type="text" placeholder="Ex : Hani" />
+    <label class="field">Ton pseudo</label>
+    <input id="name" type="text" placeholder="Ex : Hani" maxlength="40" />
   </div>
 
   <div class="card">
-    <label>Image à envoyer</label>
+    <label class="field">Image à envoyer</label>
     <div class="drop" id="drop">Clique ici pour choisir une image 🖼️</div>
     <input id="file" type="file" accept="image/*" hidden />
     <div class="preview" id="preview"></div>
   </div>
 
   <div class="card">
-    <label>Durée d'affichage</label>
+    <label class="field">Durée d'affichage</label>
     <div class="row">
       <input id="dur" type="range" min="1" max="30" value="5" />
       <span class="dur"><span id="durVal">5</span> s</span>
     </div>
   </div>
 
-  <button class="send" id="send" disabled>Envoyer à tout le monde 🚀</button>
+  <div class="card">
+    <div class="card-head">
+      <span class="title">Destinataires</span>
+      <span class="badge" id="onlineCount">0 en ligne</span>
+    </div>
+    <label class="check everyone">
+      <input type="checkbox" id="everyone" checked />
+      🌍 Tout le monde
+    </label>
+    <div class="userlist" id="userList"></div>
+  </div>
+
+  <button class="send" id="send" disabled>Envoyer 🚀</button>
 
   <div class="status">
     <span class="dot" id="dot"></span>
@@ -139,10 +142,10 @@
   <details>
     <summary>⚙️ Réglages serveur</summary>
     <div class="card" style="margin-top: 8px;">
-      <label>Adresse du serveur</label>
+      <label class="field">Adresse du serveur</label>
       <input id="server" type="url" placeholder="wss://mon-serveur.onrender.com" />
       <div class="sub" style="margin: 8px 0 0;">
-        Laisse <code>ws://localhost:8080</code> pour tester sur ton PC.
+        Par défaut : ton serveur en ligne. Pour tester en local : <code>ws://localhost:8080</code>.
       </div>
     </div>
   </details>

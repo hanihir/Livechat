@@ -22,7 +22,7 @@ function createControlWindow() {
 }
 
 // Fenêtre "pop-up" : transparente, sans bordure, au-dessus de tout, au milieu de l'écran.
-function createOverlay({ image, duration }) {
+function createOverlay({ image, duration, from }) {
   const display = screen.getPrimaryDisplay();
   const { x, y, width, height } = display.bounds;
 
@@ -58,7 +58,7 @@ function createOverlay({ image, duration }) {
   overlay.loadFile(path.join(__dirname, 'overlay.html'));
 
   overlay.webContents.once('did-finish-load', () => {
-    overlay.webContents.send('overlay-data', { image, duration });
+    overlay.webContents.send('overlay-data', { image, duration, from });
   });
 
   // Fermeture automatique après la durée (+ marge pour le fondu de sortie)

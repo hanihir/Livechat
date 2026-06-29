@@ -13,17 +13,24 @@ const els = {
   dot: document.getElementById('dot'),
   statusText: document.getElementById('statusText'),
   server: document.getElementById('server'),
+  everyone: document.getElementById('everyone'),
+  userList: document.getElementById('userList'),
+  onlineCount: document.getElementById('onlineCount'),
 };
 
 let imageData = null;
 let ws = null;
 let reconnectTimer = null;
+let myId = null;
+let users = []; // [{ id, name }]
+const selectedTargets = new Set(); // ids cochés quand "tout le monde" est décoché
 
 // --- Mémorise pseudo + adresse serveur entre deux ouvertures ---
 els.name.value = localStorage.getItem('name') || '';
 els.server.value = localStorage.getItem('server') || DEFAULT_SERVER;
 
 els.name.addEventListener('input', () => localStorage.setItem('name', els.name.value));
+els.name.addEventListener('change', sendHello); // prévient le serveur du nouveau pseudo
 els.server.addEventListener('change', () => {
   localStorage.setItem('server', els.server.value || DEFAULT_SERVER);
   connect();
@@ -33,6 +40,9 @@ els.server.addEventListener('change', () => {
 els.dur.addEventListener('input', () => {
   els.durVal.textContent = els.dur.value;
 });
+
+// --- Destinataires ---
+els.everyone.addEventListener('change', renderUserList);
 
 // --- Choix de l'image ---
 els.drop.addEventListener('click', () => els.file.click());
@@ -69,11 +79,54 @@ function resizeImage(dataUrl) {
   img.src = dataUrl;
 }
 
-// --- Connexion WebSocket ---
+// --- Liste des connectés ---
+function renderUserList() {
+  const others = users.filter((u) => u.id !== myId);
+  const everyone = els.everyone.checked;
+
+  els.onlineCount.textContent =
+    users.length <= 1 ? 'Toi seul' : `${users.length} en ligne`;
+
+  els.userList.classList.toggle('disabled', everyone);
+
+  if (others.length === 0) {
+    els.userList.innerHTML =
+      '<div class="empty">Personne d\'autre pour l\'instant… invite tes potes !</div>';
+    return;
+  }
+
+  els.userList.innerHTML = '';
+  for (const u of others) {
+    const row = document.createElement('label');
+    row.className = 'check';
+    const cb = document.createElement('input');
+    cb.type = 'checkbox';
+    cb.checked = selectedTargets.has(u.id);
+    cb.disabled = everyone;
+    cb.addEventListener('change', () => {
+      if (cb.checked) selectedTargets.add(u.id);
+      else selectedTargets.delete(u.id);
+      updateSendButton();
+    });
+    const span = document.createElement('span');
+    span.textContent = u.name || 'Anonyme';
+    row.appendChild(cb);
+    row.appendChild(span);
+    els.userList.appendChild(row);
+  }
+}
+
+// --- WebSocket ---
 function setStatus(connected, text) {
   els.dot.classList.toggle('on', connected);
   els.statusText.textContent = text;
   updateSendButton();
+}
+
+function sendHello() {
+  if (ws && ws.readyState === WebSocket.OPEN) {
+    ws.send(JSON.stringify({ type: 'hello', name: els.name.value || 'Anonyme' }));
+  }
 }
 
 function connect() {
@@ -92,19 +145,34 @@ function connect() {
     return;
   }
 
-  ws.onopen = () => setStatus(true, 'Connecté ✓');
+  ws.onopen = () => {
+    setStatus(true, 'Connecté ✓');
+    sendHello();
+  };
   ws.onclose = () => {
     setStatus(false, 'Déconnecté — nouvelle tentative…');
+    users = [];
+    renderUserList();
     scheduleReconnect();
   };
   ws.onerror = () => setStatus(false, 'Erreur de connexion');
   ws.onmessage = (event) => {
-    try {
-      const msg = JSON.parse(event.data);
-      if (msg.type === 'show' && msg.image) {
-        window.api.showOverlay({ image: msg.image, duration: msg.duration });
+    let msg;
+    try { msg = JSON.parse(event.data); } catch (_) { return; }
+
+    if (msg.type === 'welcome') {
+      myId = msg.id;
+      renderUserList();
+    } else if (msg.type === 'presence') {
+      users = msg.users || [];
+      // on nettoie les cibles qui ne sont plus connectées
+      for (const id of [...selectedTargets]) {
+        if (!users.some((u) => u.id === id)) selectedTargets.delete(id);
       }
-    } catch (_) {}
+      renderUserList();
+    } else if (msg.type === 'show' && msg.image) {
+      window.api.showOverlay({ image: msg.image, duration: msg.duration, from: msg.from });
+    }
   };
 }
 
@@ -114,19 +182,21 @@ function scheduleReconnect() {
 }
 
 function updateSendButton() {
-  const ready = ws && ws.readyState === WebSocket.OPEN && imageData;
-  els.send.disabled = !ready;
+  const connected = ws && ws.readyState === WebSocket.OPEN;
+  const hasTarget = els.everyone.checked || selectedTargets.size > 0;
+  els.send.disabled = !(connected && imageData && hasTarget);
 }
 
 // --- Envoi ---
 els.send.addEventListener('click', () => {
   if (!ws || ws.readyState !== WebSocket.OPEN || !imageData) return;
+  const targets = els.everyone.checked ? [] : [...selectedTargets];
   ws.send(
     JSON.stringify({
       type: 'show',
       image: imageData,
       duration: Number(els.dur.value),
-      from: els.name.value || 'Anonyme',
+      targets,
     })
   );
 });
