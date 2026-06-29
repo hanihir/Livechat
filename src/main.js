@@ -12,11 +12,14 @@ let tray = null;
 let isQuitting = false; // vrai seulement quand on quitte vraiment (menu « Quitter »)
 const startHidden = process.argv.includes('--hidden'); // lancé au démarrage Windows = discret
 
-// Une seule instance de l'appli à la fois (sinon un 2e lancement rouvre la fenêtre).
-if (!app.requestSingleInstanceLock()) {
-  app.quit();
-} else {
-  app.on('second-instance', showWindow);
+// Une seule instance à la fois — seulement pour l'appli installée
+// (en dev on autorise plusieurs fenêtres pour tester à plusieurs).
+if (app.isPackaged) {
+  if (!app.requestSingleInstanceLock()) {
+    app.quit();
+  } else {
+    app.on('second-instance', showWindow);
+  }
 }
 
 // Fenêtre principale : l'interface où on choisit l'image, la durée, etc.
