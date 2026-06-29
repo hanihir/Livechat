@@ -195,6 +195,9 @@ document.getElementById('videoFile').addEventListener('change', (e) => {
   reader.readAsDataURL(f);
 });
 
+// --- Webcam ---
+document.getElementById('openCam').addEventListener('click', () => window.openWebcam(setReadyImage));
+
 // --- Musique ---
 document.getElementById('openMusic').addEventListener('click', () => {
   window.openMusic((track) => {

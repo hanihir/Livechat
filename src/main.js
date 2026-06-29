@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, screen, Tray, Menu, nativeImage } = require('electron');
+const { app, BrowserWindow, ipcMain, screen, Tray, Menu, nativeImage, session } = require('electron');
 const path = require('path');
 
 // Autorise la lecture audio automatique : sinon Chromium bloque le son
@@ -124,6 +124,9 @@ function createOverlay({ image, duration, from, pos, size, opacity, texts, drawi
 }
 
 app.whenReady().then(() => {
+  // Autorise l'accès caméra/micro (webcam) pour cette appli.
+  session.defaultSession.setPermissionRequestHandler((_wc, _permission, callback) => callback(true));
+
   createControlWindow();
   createTray();
   // Lancement automatique au démarrage de Windows (démarré masqué dans la barre système).
