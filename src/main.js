@@ -71,7 +71,7 @@ function createTray() {
 }
 
 // Fenêtre "pop-up" : transparente, sans bordure, au-dessus de tout, au milieu de l'écran.
-function createOverlay({ image, duration, from, pos, size, texts }) {
+function createOverlay({ image, duration, from, pos, size, texts, drawing }) {
   const display = screen.getPrimaryDisplay();
   const { x, y, width, height } = display.bounds;
 
@@ -108,7 +108,7 @@ function createOverlay({ image, duration, from, pos, size, texts }) {
   overlay.loadFile(path.join(__dirname, 'overlay.html'));
 
   overlay.webContents.once('did-finish-load', () => {
-    overlay.webContents.send('overlay-data', { image, duration, from, pos, size, texts });
+    overlay.webContents.send('overlay-data', { image, duration, from, pos, size, texts, drawing });
   });
 
   // Fermeture automatique après la durée (+ marge pour le fondu de sortie)

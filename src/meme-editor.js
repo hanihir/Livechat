@@ -16,11 +16,21 @@
   const cancelBtn = document.getElementById('meCancel');
   const validateBtn = document.getElementById('meValidate');
   const closeBtn = document.getElementById('meEditClose');
+  const drawCanvas = document.getElementById('meDraw');
+  const dctx = drawCanvas.getContext('2d');
+  const drawToggle = document.getElementById('meDrawToggle');
+  const drawCtrl = document.getElementById('meDrawCtrl');
+  const brushColor = document.getElementById('meBrushColor');
+  const brushSize = document.getElementById('meBrushSize');
+  const drawClear = document.getElementById('meDrawClear');
 
   let onDone = null;
   let blocks = []; // { el, text, size, color, xPct, yPct }  (position en % du visuel)
   let selected = null;
   let hasImage = false;
+  let drawingMode = false; // pinceau actif ?
+  let painting = false;
+  let hasStrokes = false;
 
   window.openMemeEditor = function (cb, startDataUrl) {
     reset();
@@ -36,6 +46,12 @@
       img.style.display = 'block';
       hint.style.display = 'none';
       addTextBtn.disabled = false;
+      drawToggle.disabled = false;
+      // le canvas de dessin épouse la taille affichée de l'image
+      drawCanvas.width = img.clientWidth;
+      drawCanvas.height = img.clientHeight;
+      dctx.clearRect(0, 0, drawCanvas.width, drawCanvas.height);
+      hasStrokes = false;
     };
     img.src = src;
   }
@@ -51,6 +67,52 @@
     addTextBtn.disabled = true;
     textCtrl.hidden = true;
     fileInput.value = '';
+    // dessin
+    setDrawing(false);
+    drawToggle.disabled = true;
+    dctx.clearRect(0, 0, drawCanvas.width, drawCanvas.height);
+    hasStrokes = false;
+  }
+
+  // --- Pinceau (dessin à main levée) ---
+  function setDrawing(on) {
+    drawingMode = on;
+    drawToggle.classList.toggle('active', on);
+    drawCanvas.classList.toggle('drawing', on);
+    drawCtrl.hidden = !on;
+    if (on) { textCtrl.hidden = true; select(null); }
+  }
+  drawToggle.addEventListener('click', () => { if (hasImage) setDrawing(!drawingMode); });
+  drawClear.addEventListener('click', () => {
+    dctx.clearRect(0, 0, drawCanvas.width, drawCanvas.height);
+    hasStrokes = false;
+  });
+  drawCanvas.addEventListener('mousedown', (e) => {
+    if (!drawingMode) return;
+    painting = true;
+    const p = drawPoint(e);
+    dctx.beginPath();
+    dctx.moveTo(p.x, p.y);
+  });
+  window.addEventListener('mousemove', (e) => {
+    if (!painting) return;
+    const p = drawPoint(e);
+    dctx.lineTo(p.x, p.y);
+    dctx.strokeStyle = brushColor.value;
+    dctx.lineWidth = Number(brushSize.value);
+    dctx.lineCap = 'round';
+    dctx.lineJoin = 'round';
+    dctx.stroke();
+    hasStrokes = true;
+  });
+  window.addEventListener('mouseup', () => { painting = false; });
+
+  function drawPoint(e) {
+    const r = drawCanvas.getBoundingClientRect();
+    return {
+      x: (e.clientX - r.left) * (drawCanvas.width / r.width),
+      y: (e.clientY - r.top) * (drawCanvas.height / r.height),
+    };
   }
 
   function close() {
@@ -70,6 +132,7 @@
   // --- Ajouter un bloc de texte ---
   addTextBtn.addEventListener('click', () => {
     if (!hasImage) return;
+    setDrawing(false); // on quitte le pinceau pour pouvoir déplacer le texte
     const el = document.createElement('div');
     el.className = 'me-text';
     const b = { el, text: 'TEXTE', size: 44, color: '#ffffff', xPct: 50, yPct: 12 };
@@ -166,7 +229,8 @@
         sizePct: (b.size / stageH) * 100,
         color: b.color,
       }));
-      if (onDone) onDone({ gif: img.src, texts });
+      const drawing = hasStrokes ? drawCanvas.toDataURL('image/png') : null;
+      if (onDone) onDone({ gif: img.src, texts, drawing });
       close();
       return;
     }
@@ -185,6 +249,9 @@
     canvas.height = h;
     const ctx = canvas.getContext('2d');
     ctx.drawImage(img, 0, 0, w, h);
+
+    // dessin du pinceau fusionné dans l'image (sous le texte)
+    if (hasStrokes) ctx.drawImage(drawCanvas, 0, 0, w, h);
 
     // facteur d'échelle entre l'affichage (CSS px) et l'image finale
     const scale = w / stage.getBoundingClientRect().width;

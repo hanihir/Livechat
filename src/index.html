@@ -197,6 +197,8 @@
     .editor-stage { position: relative; width: fit-content; max-width: 100%; margin: 0 auto 16px; }
     .me-hint { color: var(--muted); border: 2.5px dashed var(--ink); border-radius: 14px; padding: 40px 24px; text-align: center; font-size: 14px; font-weight: 600; background: var(--card); }
     #meImage { max-width: 100%; max-height: 44vh; display: none; border-radius: 10px; border: var(--bd); box-shadow: var(--sh); }
+    .me-draw { position: absolute; inset: 0; pointer-events: none; border-radius: 10px; }
+    .me-draw.drawing { pointer-events: auto; cursor: crosshair; }
     .me-text {
       position: absolute; white-space: nowrap; line-height: 1;
       font-family: Impact, 'Arial Black', sans-serif; font-weight: 400;
@@ -413,12 +415,25 @@
     <div class="editor-stage" id="meStage">
       <div class="me-hint" id="meHint">Clique sur « 🖼️ Image » pour charger une image</div>
       <img id="meImage" alt="" />
+      <canvas id="meDraw" class="me-draw"></canvas>
     </div>
     <div class="editor-tools">
       <button class="btn" id="meLoad">🖼️ Image</button>
       <button class="btn" id="meAddText" disabled>➕ Ajouter du texte</button>
+      <button class="btn" id="meDrawToggle" disabled>✏️ Dessin</button>
     </div>
     <input type="file" id="meFile" accept="image/*" hidden />
+    <div class="editor-textctrl" id="meDrawCtrl" hidden>
+      <div class="row">
+        <label>Couleur</label>
+        <input type="color" id="meBrushColor" value="#ff2d55" />
+        <label style="margin-left: 16px;">Épaisseur</label>
+        <input type="range" id="meBrushSize" min="2" max="40" value="6" />
+      </div>
+      <div class="row" style="margin-top: 12px;">
+        <button class="btn danger" id="meDrawClear">🧽 Tout effacer</button>
+      </div>
+    </div>
     <div class="editor-textctrl" id="meTextCtrl" hidden>
       <input type="text" id="meTextInput" placeholder="Ton texte…" />
       <div class="row">
