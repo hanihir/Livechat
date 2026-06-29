@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, screen } = require('electron');
+const { app, BrowserWindow, ipcMain, screen, Tray, Menu, nativeImage } = require('electron');
 const path = require('path');
 
 // Autorise la lecture audio automatique : sinon Chromium bloque le son
@@ -6,6 +6,16 @@ const path = require('path');
 app.commandLine.appendSwitch('autoplay-policy', 'no-user-gesture-required');
 
 let controlWindow;
+let tray = null;
+let isQuitting = false; // vrai seulement quand on quitte vraiment (menu « Quitter »)
+const startHidden = process.argv.includes('--hidden'); // lancé au démarrage Windows = discret
+
+// Une seule instance de l'appli à la fois (sinon un 2e lancement rouvre la fenêtre).
+if (!app.requestSingleInstanceLock()) {
+  app.quit();
+} else {
+  app.on('second-instance', showWindow);
+}
 
 // Fenêtre principale : l'interface où on choisit l'image, la durée, etc.
 function createControlWindow() {
@@ -15,7 +25,9 @@ function createControlWindow() {
     minWidth: 480,
     minHeight: 640,
     resizable: true,
+    show: !startHidden, // au démarrage Windows, on reste dans la barre système
     title: 'LiveChatr',
+    icon: path.join(__dirname, 'icon.png'),
     backgroundColor: '#FBF1DE',
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
@@ -26,6 +38,36 @@ function createControlWindow() {
   });
   controlWindow.setMenuBarVisibility(false);
   controlWindow.loadFile(path.join(__dirname, 'index.html'));
+
+  // Fermer la fenêtre (croix) = la cacher dans la barre système, sans quitter l'appli.
+  controlWindow.on('close', (event) => {
+    if (!isQuitting) {
+      event.preventDefault();
+      controlWindow.hide();
+    }
+  });
+}
+
+// Affiche / ramène la fenêtre principale au premier plan.
+function showWindow() {
+  if (!controlWindow || controlWindow.isDestroyed()) {
+    createControlWindow();
+  }
+  controlWindow.show();
+  controlWindow.focus();
+}
+
+// Icône dans la barre système (à côté de l'horloge) avec un menu clic droit.
+function createTray() {
+  const icon = nativeImage.createFromPath(path.join(__dirname, 'icon.png'));
+  tray = new Tray(icon.resize({ width: 18, height: 18 }));
+  tray.setToolTip('LiveChatr');
+  tray.setContextMenu(Menu.buildFromTemplate([
+    { label: 'Ouvrir LiveChatr', click: showWindow },
+    { type: 'separator' },
+    { label: 'Quitter', click: () => { isQuitting = true; app.quit(); } },
+  ]));
+  tray.on('click', showWindow);
 }
 
 // Fenêtre "pop-up" : transparente, sans bordure, au-dessus de tout, au milieu de l'écran.
@@ -78,6 +120,11 @@ function createOverlay({ image, duration, from, audio, audioName }) {
 
 app.whenReady().then(() => {
   createControlWindow();
+  createTray();
+  // Lancement automatique au démarrage de Windows (démarré masqué dans la barre système).
+  if (app.isPackaged) {
+    app.setLoginItemSettings({ openAtLogin: true, args: ['--hidden'] });
+  }
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createControlWindow();
   });
@@ -115,6 +162,8 @@ ipcMain.handle('http-request', async (_event, { url, method, headers, body }) =>
   return { ok: res.ok, status: res.status, json, text };
 });
 
-app.on('window-all-closed', () => {
-  if (process.platform !== 'darwin') app.quit();
-});
+// Quand l'appli quitte vraiment, on laisse les fenêtres se fermer.
+app.on('before-quit', () => { isQuitting = true; });
+
+// On NE quitte PAS quand la fenêtre est fermée : l'appli reste vivante dans la barre système.
+app.on('window-all-closed', () => { /* rien : on vit dans le tray */ });
