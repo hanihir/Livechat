@@ -378,6 +378,15 @@
       border: 2px solid var(--ink); border-radius: 50%; background: var(--coral); color: #fff; cursor: pointer;
       font-size: 11px; font-weight: 900; width: 20px; height: 20px; line-height: 1; padding: 0; flex: 0 0 auto;
     }
+    /* Panneau d'enregistrement micro */
+    .rec-panel { max-width: 460px; margin: 0 auto 16px; background: var(--card); border: var(--bd); border-radius: 14px; box-shadow: var(--sh-sm); padding: 14px; }
+    .rec-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: center; }
+    .rec-time { font-family: var(--font-display); font-weight: 800; font-size: 18px; min-width: 48px; text-align: center; }
+    .rec-panel.recording .rec-time { color: var(--coral); animation: recblink 1s steps(2) infinite; }
+    @keyframes recblink { 50% { opacity: .35; } }
+    .rec-actions { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
+    .rec-name { border: var(--bd); border-radius: 10px; padding: 9px 12px; font: inherit; font-weight: 600; }
+
     /* mode « appuie sur une touche » */
     .sound-tile.capturing { outline: 3px dashed var(--blue); outline-offset: -6px; }
     .sound-tile.capturing .sound-name::after { content: ' — appuie sur une touche…'; font-weight: 600; font-size: 12px; }
@@ -700,9 +709,28 @@
       <button class="btn ghost" id="soundClose">✕</button>
     </div>
     <div style="text-align:center; margin-bottom:14px;">
-      <button class="btn primary" id="soundImport">➕ Importer un son (partagé)</button>
+      <button class="btn primary" id="soundImport">➕ Importer un son</button>
+      <button class="btn" id="soundRec">🎙️ Enregistrer ma voix</button>
       <input type="file" id="soundFile" accept="audio/*" hidden />
       <div class="sub" style="margin-top:8px;">Clique un son pour le balancer à tout le monde 🔊 — tu peux <b>spammer</b> ! (▶️ pour écouter avant)</div>
+    </div>
+
+    <!-- Panneau d'enregistrement micro -->
+    <div class="rec-panel" id="recPanel" hidden>
+      <div class="rec-row">
+        <button class="btn primary" id="recStart">🔴 Enregistrer</button>
+        <button class="btn" id="recStop" style="display:none;">⏹️ Stop</button>
+        <span class="rec-time" id="recTime">0:00</span>
+        <button class="btn ghost" id="recCancel">✕ Fermer</button>
+      </div>
+      <audio id="recAudio" controls style="display:none; width:100%; margin-top:10px;"></audio>
+      <div class="rec-actions" id="recActions" style="display:none;">
+        <input id="recName" class="rec-name" placeholder="Nom du son (ex : mon cri)" maxlength="40" />
+        <button class="btn primary" id="recSavePerm">💾 Permanent (ajouter au soundboard)</button>
+        <button class="btn" id="recSendOnce">⚡ Éphémère — envoyer 1 fois</button>
+        <button class="btn ghost" id="recRetake">↺ Refaire</button>
+      </div>
+      <div class="sub" id="recHint" style="margin-top:8px;">🎙️ Enregistre avec ton micro, puis garde-le (permanent) ou envoie-le une seule fois (éphémère, non sauvegardé).</div>
     </div>
     <div class="row" style="max-width:320px; margin:0 auto 14px;">
       <label style="font-size:12px; color:var(--muted); min-width:64px;">🔊 Volume</label>

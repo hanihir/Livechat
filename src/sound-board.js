@@ -179,6 +179,115 @@
     return tile;
   }
 
+  // --- Enregistrement micro (permanent ou éphémère) ---
+  const recBtn = document.getElementById('soundRec');
+  const recPanel = document.getElementById('recPanel');
+  const recStartBtn = document.getElementById('recStart');
+  const recStopBtn = document.getElementById('recStop');
+  const recCancelBtn = document.getElementById('recCancel');
+  const recTime = document.getElementById('recTime');
+  const recAudio = document.getElementById('recAudio');
+  const recActions = document.getElementById('recActions');
+  const recName = document.getElementById('recName');
+  const recSavePerm = document.getElementById('recSavePerm');
+  const recSendOnce = document.getElementById('recSendOnce');
+  const recRetake = document.getElementById('recRetake');
+  const recHint = document.getElementById('recHint');
+
+  let mediaRec = null, recChunks = [], recStream = null, recData = null, recTimer = null, recStart0 = 0;
+
+  function fmtTime(ms) {
+    const s = Math.floor(ms / 1000);
+    return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
+  }
+  function recReset() {
+    if (recTimer) { clearInterval(recTimer); recTimer = null; }
+    recData = null; recChunks = [];
+    recTime.textContent = '0:00';
+    recPanel.classList.remove('recording');
+    recStartBtn.style.display = 'inline-flex';
+    recStopBtn.style.display = 'none';
+    recAudio.style.display = 'none'; recAudio.removeAttribute('src');
+    recActions.style.display = 'none';
+    recHint.style.display = 'block';
+  }
+  function recStopStream() { if (recStream) { recStream.getTracks().forEach((t) => t.stop()); recStream = null; } }
+
+  recBtn.addEventListener('click', () => {
+    recPanel.hidden = !recPanel.hidden;
+    if (!recPanel.hidden) recReset();
+  });
+  recCancelBtn.addEventListener('click', () => {
+    if (mediaRec && mediaRec.state !== 'inactive') { try { mediaRec.stop(); } catch (_) {} }
+    recStopStream(); recReset(); recPanel.hidden = true;
+  });
+
+  recStartBtn.addEventListener('click', async () => {
+    try {
+      recStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    } catch (e) {
+      status.textContent = '🎙️ Micro inaccessible (occupé ou refusé par Windows).';
+      return;
+    }
+    recChunks = [];
+    mediaRec = new MediaRecorder(recStream);
+    mediaRec.ondataavailable = (ev) => { if (ev.data && ev.data.size) recChunks.push(ev.data); };
+    mediaRec.onstop = () => {
+      recStopStream();
+      const blob = new Blob(recChunks, { type: mediaRec.mimeType || 'audio/webm' });
+      const reader = new FileReader();
+      reader.onload = () => {
+        recData = reader.result;
+        recAudio.src = recData; recAudio.style.display = 'block';
+        recActions.style.display = 'flex';
+        recHint.style.display = 'none';
+      };
+      reader.readAsDataURL(blob);
+    };
+    mediaRec.start();
+    recPanel.classList.add('recording');
+    recStartBtn.style.display = 'none';
+    recStopBtn.style.display = 'inline-flex';
+    recAudio.style.display = 'none'; recActions.style.display = 'none'; recHint.style.display = 'block';
+    recStart0 = Date.now();
+    recTimer = setInterval(() => {
+      const el = Date.now() - recStart0;
+      recTime.textContent = fmtTime(el);
+      if (el > 30000) recStopBtn.click(); // garde-fou : 30 s max
+    }, 200);
+  });
+
+  recStopBtn.addEventListener('click', () => {
+    if (mediaRec && mediaRec.state !== 'inactive') { try { mediaRec.stop(); } catch (_) {} }
+    if (recTimer) { clearInterval(recTimer); recTimer = null; }
+    recPanel.classList.remove('recording');
+    recStartBtn.style.display = 'none';
+    recStopBtn.style.display = 'none';
+  });
+
+  recRetake.addEventListener('click', () => recReset());
+
+  // Permanent : on ajoute au soundboard partagé (Supabase) → visible par tout le monde.
+  recSavePerm.addEventListener('click', async () => {
+    if (!recData) return;
+    const name = (recName.value || '').trim().slice(0, 40) || 'Ma voix';
+    recHint.textContent = 'Ajout…'; recHint.style.display = 'block';
+    try {
+      await window.SB.addSound(name, localStorage.getItem('name') || 'Anonyme', recData);
+      recPanel.hidden = true; recReset(); recName.value = '';
+      load();
+    } catch (e) { recHint.textContent = 'Erreur lors de l\'ajout.'; }
+  });
+
+  // Éphémère : on l'envoie UNE fois à tout le monde, sans rien sauvegarder.
+  recSendOnce.addEventListener('click', () => {
+    if (!recData) return;
+    const name = (recName.value || '').trim().slice(0, 40) || '🎙️ Voix';
+    window.sendSound({ name, data: recData }, getVol());
+    recPanel.hidden = true; recReset(); recName.value = '';
+    status.textContent = '⚡ Son éphémère envoyé à tout le monde (non sauvegardé).';
+  });
+
   importBtn.addEventListener('click', () => fileInput.click());
   fileInput.addEventListener('change', () => {
     const f = fileInput.files[0];
