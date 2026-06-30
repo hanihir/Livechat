@@ -23,9 +23,11 @@
   const brushColor = document.getElementById('meBrushColor');
   const brushSize = document.getElementById('meBrushSize');
   const drawClear = document.getElementById('meDrawClear');
+  const dblHint = document.getElementById('meDblHint');
 
   let onDone = null;
-  let blocks = []; // { el, text, size, color, xPct, yPct }  (position en % du visuel)
+  let blocks = []; // { el, text, size, color, xPct, yPct }  (xPct/yPct = CENTRE du texte, en %)
+  let editing = null;
   let selected = null;
   let hasImage = false;
   let drawingMode = false; // pinceau actif ?
@@ -45,6 +47,7 @@
       hasImage = true;
       img.style.display = 'block';
       hint.style.display = 'none';
+      if (dblHint) dblHint.hidden = false;
       addTextBtn.disabled = false;
       drawToggle.disabled = false;
       // le canvas de dessin épouse la taille affichée de l'image
@@ -66,6 +69,8 @@
     hint.style.display = 'block';
     addTextBtn.disabled = true;
     textCtrl.hidden = true;
+    editing = null;
+    if (dblHint) dblHint.hidden = true;
     fileInput.value = '';
     // dessin
     setDrawing(false);
@@ -129,32 +134,45 @@
     reader.readAsDataURL(f);
   });
 
-  // --- Ajouter un bloc de texte ---
-  addTextBtn.addEventListener('click', () => {
+  // Crée un nouveau bloc de texte centré sur (xPct,yPct) et passe en édition directe.
+  function addBlock(xPct, yPct) {
     if (!hasImage) return;
-    setDrawing(false); // on quitte le pinceau pour pouvoir déplacer le texte
+    setDrawing(false); // on quitte le pinceau pour pouvoir écrire/déplacer
     const el = document.createElement('div');
     el.className = 'me-text';
-    const b = { el, text: 'TEXTE', size: 44, color: '#ffffff', xPct: 50, yPct: 12 };
+    const b = { el, text: '', size: 46, color: '#ffffff', xPct, yPct };
     stage.appendChild(el);
     blocks.push(b);
     applyBlock(b);
     makeDraggable(b);
-    select(b);
-    textInput.focus();
-    textInput.select();
+    el.addEventListener('input', () => { if (editing === b) b.text = el.textContent; });
+    startEdit(b);
+  }
+
+  // --- Ajouter un bloc de texte (bouton) : en haut, façon mème ---
+  addTextBtn.addEventListener('click', () => addBlock(50, 14));
+
+  // Double-clic sur l'image : ajoute un texte là où on clique
+  stage.addEventListener('dblclick', (e) => {
+    if (!hasImage || drawingMode) return;
+    if (e.target.classList && e.target.classList.contains('me-text')) return; // géré par le bloc
+    const r = stage.getBoundingClientRect();
+    addBlock(
+      Math.max(6, Math.min(94, ((e.clientX - r.left) / r.width) * 100)),
+      Math.max(6, Math.min(94, ((e.clientY - r.top) / r.height) * 100))
+    );
   });
 
-  // Applique l'état d'un bloc à son élément à l'écran.
+  // Applique le STYLE d'un bloc (position centrée, taille, couleur, contour).
   function applyBlock(b) {
     const el = b.el;
-    el.textContent = b.text || ' ';
+    if (editing !== b) el.textContent = b.text || ''; // on ne touche pas au texte pendant l'édition (curseur)
     el.style.fontSize = b.size + 'px';
     el.style.color = b.color;
     el.style.left = b.xPct + '%';
     el.style.top = b.yPct + '%';
-    // largeur max pour que le texte reste DANS le cadre (passe à la ligne)
-    el.style.maxWidth = Math.max(12, 98 - b.xPct) + '%';
+    // texte centré, large comme un vrai mème (passe à la ligne tout seul)
+    el.style.maxWidth = '92%';
     // contour noir « façon mème » derrière le texte (s'adapte à la taille)
     const o = Math.max(1, b.size / 22);
     el.style.textShadow =
@@ -163,7 +181,31 @@
       `0 ${o}px 0 #000, 0 ${-o}px 0 #000, ${o}px 0 0 #000, ${-o}px 0 0 #000`;
   }
 
+  // Entre en mode édition directe (on tape sur l'image).
+  function startEdit(b) {
+    select(b);
+    editing = b;
+    const el = b.el;
+    el.classList.add('editing');
+    el.contentEditable = 'true';
+    el.focus();
+    // sélectionne tout le texte du bloc
+    const r = document.createRange(); r.selectNodeContents(el);
+    const sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(r);
+    if (dblHint) dblHint.hidden = true;
+  }
+  function stopEdit() {
+    if (!editing) return;
+    const b = editing;
+    b.el.classList.remove('editing');
+    b.el.contentEditable = 'false';
+    b.text = b.el.textContent.trim();
+    editing = null;
+    if (!b.text) { b.el.remove(); blocks = blocks.filter((x) => x !== b); select(null); }
+  }
+
   function select(b) {
+    if (editing && editing !== b) stopEdit();
     selected = b;
     blocks.forEach((bl) => bl.el.classList.toggle('sel', bl === b));
     if (!b) { textCtrl.hidden = true; return; }
@@ -189,9 +231,11 @@
     select(null);
   });
 
-  // --- Déplacement à la souris ---
+  // --- Déplacement à la souris (+ double-clic pour rééditer) ---
   function makeDraggable(b) {
+    b.el.addEventListener('dblclick', (e) => { e.stopPropagation(); startEdit(b); });
     b.el.addEventListener('mousedown', (e) => {
+      if (editing === b) return; // en édition : on laisse placer le curseur / sélectionner
       e.preventDefault();
       select(b);
       const rect = stage.getBoundingClientRect();
@@ -211,9 +255,16 @@
     });
   }
 
-  // Clic dans le vide => on désélectionne
+  // Clic dans le vide => on sort de l'édition et on désélectionne
   stage.addEventListener('mousedown', (e) => {
-    if (e.target === stage || e.target === img || e.target === hint) select(null);
+    if (e.target === stage || e.target === img || e.target === hint || e.target === drawCanvas) {
+      stopEdit(); select(null);
+    }
+  });
+  // Entrée valide le texte (Maj+Entrée = nouvelle ligne)
+  stage.addEventListener('keydown', (e) => {
+    if (editing && e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); stopEdit(); select(null); }
+    if (editing && e.key === 'Escape') { e.preventDefault(); stopEdit(); select(null); }
   });
 
   // Découpe un texte en lignes qui tiennent dans une largeur donnée (pixels canvas).
@@ -238,9 +289,9 @@
     // + une couche de texte (positions et tailles en % pour rester proportionnel).
     if (img.src.startsWith('data:image/gif')) {
       const stageH = stage.getBoundingClientRect().height || 1;
-      const texts = blocks.map((b) => ({
+      const texts = blocks.filter((b) => b.text).map((b) => ({
         text: b.text,
-        xPct: b.xPct,
+        xPct: b.xPct,   // centre du texte
         yPct: b.yPct,
         sizePct: (b.size / stageH) * 100,
         color: b.color,
@@ -272,21 +323,23 @@
     // facteur d'échelle entre l'affichage (CSS px) et l'image finale
     const scale = w / stage.getBoundingClientRect().width;
 
-    ctx.textAlign = 'left';
-    ctx.textBaseline = 'top';
+    ctx.textAlign = 'center';   // texte centré (comme dans l'éditeur)
+    ctx.textBaseline = 'middle';
     ctx.lineJoin = 'round';
 
     for (const b of blocks) {
+      if (!b.text) continue;
       const fontPx = b.size * scale;
       ctx.font = `${fontPx}px Impact, "Arial Black", sans-serif`;
-      const x = (b.xPct / 100) * w;
-      const y = (b.yPct / 100) * h;
-      const maxW = (Math.max(12, 98 - b.xPct) / 100) * w; // même largeur que dans l'éditeur
+      const x = (b.xPct / 100) * w; // x = CENTRE du texte
+      const y = (b.yPct / 100) * h; // y = CENTRE du texte
+      const maxW = 0.92 * w;        // même largeur que dans l'éditeur (92%)
       ctx.lineWidth = Math.max(2, fontPx / 7);
       const lines = wrapCanvas(ctx, b.text, maxW);
-      const lineH = fontPx * 1.08;
+      const lineH = fontPx * 1.05;
+      const startY = y - ((lines.length - 1) * lineH) / 2; // centrage vertical du bloc
       lines.forEach((ln, i) => {
-        const ly = y + i * lineH;
+        const ly = startY + i * lineH;
         ctx.strokeStyle = '#000';
         ctx.strokeText(ln, x, ly);
         ctx.fillStyle = b.color;

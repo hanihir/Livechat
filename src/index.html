@@ -220,12 +220,15 @@
     .me-draw { position: absolute; inset: 0; pointer-events: none; border-radius: 10px; }
     .me-draw.drawing { pointer-events: auto; cursor: crosshair; }
     .me-text {
-      position: absolute; white-space: normal; word-break: break-word; line-height: 1.08;
+      position: absolute; white-space: normal; word-break: break-word; line-height: 1.05;
       font-family: Impact, 'Arial Black', sans-serif; font-weight: 400;
-      color: #fff; cursor: move; padding: 0 2px;
+      color: #fff; cursor: move; padding: 0 2px; text-align: center;
+      transform: translate(-50%, -50%); outline: none;
       -webkit-user-select: none; user-select: none;
     }
-    .me-text.sel { outline: 3px dashed var(--blue); outline-offset: 2px; }
+    .me-text.sel { outline: 2px dashed var(--blue); outline-offset: 3px; }
+    .me-text.editing { cursor: text; -webkit-user-select: text; user-select: text; }
+    .me-dblhint { position: absolute; left: 50%; bottom: 8px; transform: translateX(-50%); background: rgba(24,20,14,.78); color: #fff; font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 999px; pointer-events: none; }
     .editor-tools { display: flex; gap: 10px; justify-content: center; margin-bottom: 14px; flex-wrap: wrap; }
 
     .btn {
@@ -539,6 +542,7 @@
       <div class="me-hint" id="meHint">Clique sur « 🖼️ Image » pour charger une image</div>
       <img id="meImage" alt="" />
       <canvas id="meDraw" class="me-draw"></canvas>
+      <div class="me-dblhint" id="meDblHint" hidden>✏️ Double-clique sur l'image pour écrire</div>
     </div>
     <div class="editor-tools">
       <button class="btn" id="meLoad">🖼️ Image</button>
