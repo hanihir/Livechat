@@ -120,6 +120,21 @@
     #openVideo { background: var(--coral); color: #fff; }
     #openCam { background: var(--yellow); }
     #openMusic { background: var(--pink); color: #fff; }
+    .drop.drag { background: var(--lime); color: var(--ink); }
+
+    /* Barre de sources compacte (4 boutons icône + label) */
+    .src-bar { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 10px; }
+    .src-btn {
+      display: flex; flex-direction: column; align-items: center; gap: 4px;
+      padding: 12px 4px; border: var(--bd); border-radius: 12px; cursor: pointer;
+      background: var(--card); color: var(--ink);
+      font-family: var(--font-display); font-weight: 700; font-size: 12px;
+      box-shadow: var(--sh-sm); transition: transform .1s, box-shadow .1s;
+    }
+    .src-btn:hover { transform: translate(-1px,-1px); box-shadow: 4px 4px 0 var(--ink); }
+    .src-btn:active { transform: translate(2px,2px); box-shadow: 1px 1px 0 var(--ink); }
+    .src-btn .ic { font-size: 22px; }
+    .opt-lbl { font-size: 12px; color: var(--muted); min-width: 70px; font-weight: 700; }
 
     .preview { margin-top: 12px; text-align: center; }
     .preview img { max-width: 100%; max-height: 200px; border-radius: 10px; border: var(--bd); box-shadow: var(--sh-sm); }
@@ -357,30 +372,32 @@
   </header>
 
   <main class="content">
+    <!-- Étape 1 : quoi envoyer -->
     <div class="card">
-      <label class="field">Image à envoyer</label>
-      <div class="drop" id="drop">Clique ici pour choisir une image 🖼️</div>
-      <button id="openMeme" class="meme-btn">🎨 ou crée ton mème (image + texte)</button>
-      <button id="openLib" class="meme-btn">🐸 ou pioche dans les GIF &amp; mèmes</button>
-      <button id="openVideo" class="meme-btn">🎬 ou envoie une vidéo courte</button>
-      <button id="openCam" class="meme-btn">📷 ou prends une photo (webcam)</button>
+      <label class="field">1 · Quoi envoyer ?</label>
+      <div class="drop" id="drop">Glisse une image ici, clique, ou <b>Ctrl+V</b> 🖼️</div>
+      <div class="src-bar">
+        <button id="openMeme" class="src-btn"><span class="ic">🎨</span>Mème</button>
+        <button id="openLib" class="src-btn"><span class="ic">🐸</span>GIF</button>
+        <button id="openVideo" class="src-btn"><span class="ic">🎬</span>Vidéo</button>
+        <button id="openCam" class="src-btn"><span class="ic">📷</span>Webcam</button>
+      </div>
       <input id="file" type="file" accept="image/*" hidden />
       <input id="videoFile" type="file" accept="video/*" hidden />
       <div class="preview" id="preview"></div>
       <button id="editReady" class="meme-btn" hidden style="margin-top:12px; background:var(--lime);">🎨 Éditer cette image (texte / dessin)</button>
     </div>
 
+    <!-- Étape 2 : affichage -->
     <div class="card">
-      <label class="field">Durée d'affichage</label>
+      <label class="field">2 · Affichage</label>
       <div class="row">
+        <label class="opt-lbl">⏱️ Durée</label>
         <input id="dur" type="range" min="1" max="30" value="5" />
         <span class="dur"><span id="durVal">5</span> s</span>
       </div>
-    </div>
-
-    <div class="card">
-      <details>
-        <summary>📐 Placement, taille &amp; transparence (optionnel)</summary>
+      <details style="margin-top: 10px;">
+        <summary>🎛️ Position, taille, transparence, effet</summary>
         <div style="margin-top: 14px;">
           <label class="field">Position à l'écran</label>
           <div class="posgrid" id="posGrid"></div>
@@ -400,23 +417,29 @@
       </details>
     </div>
 
+    <!-- Musique (optionnel, repliée) -->
     <div class="card">
-      <label class="field">Musique (optionnel)</label>
-      <button id="openMusic" class="meme-btn">🎵 Ajouter une musique</button>
-      <div class="music-chip" id="musicChip" hidden>
-        <span id="musicChipName"></span>
-        <button class="chip-x" id="musicRemove">✕</button>
-      </div>
-      <div class="row" id="volumeRow" hidden style="margin-top: 12px;">
-        <label style="font-size:12px; color:var(--muted); min-width:64px;">🔊 Volume</label>
-        <input type="range" id="volume" min="0" max="100" value="100" />
-        <span class="dur"><span id="volVal">100</span>%</span>
-      </div>
+      <details>
+        <summary>🎵 Ajouter une musique (optionnel)</summary>
+        <div style="margin-top: 12px;">
+          <button id="openMusic" class="meme-btn">🎵 Choisir une musique</button>
+          <div class="music-chip" id="musicChip" hidden>
+            <span id="musicChipName"></span>
+            <button class="chip-x" id="musicRemove">✕</button>
+          </div>
+          <div class="row" id="volumeRow" hidden style="margin-top: 12px;">
+            <label style="font-size:12px; color:var(--muted); min-width:64px;">🔊 Volume</label>
+            <input type="range" id="volume" min="0" max="100" value="100" />
+            <span class="dur"><span id="volVal">100</span>%</span>
+          </div>
+        </div>
+      </details>
     </div>
 
+    <!-- Étape 3 : destinataires -->
     <div class="card">
       <div class="card-head">
-        <span class="title">Destinataires</span>
+        <span class="title">3 · Destinataires</span>
         <span class="badge" id="onlineCount">0 en ligne</span>
       </div>
       <label class="check everyone">

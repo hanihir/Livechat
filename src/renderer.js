@@ -196,6 +196,18 @@ els.file.addEventListener('change', () => {
   if (f) loadImage(f);
 });
 
+// Glisser-déposer une image sur la zone
+window.addEventListener('dragover', (e) => e.preventDefault());
+window.addEventListener('drop', (e) => e.preventDefault());
+els.drop.addEventListener('dragover', (e) => { e.preventDefault(); els.drop.classList.add('drag'); });
+els.drop.addEventListener('dragleave', () => els.drop.classList.remove('drag'));
+els.drop.addEventListener('drop', (e) => {
+  e.preventDefault();
+  els.drop.classList.remove('drag');
+  const f = e.dataTransfer && e.dataTransfer.files[0];
+  if (f && f.type.startsWith('image/')) loadImage(f);
+});
+
 // Quand une image finale est prête (éditeur ou bibliothèque), on la met en attente d'envoi.
 function setReadyImage(result) {
   if (result && typeof result === 'object') {
