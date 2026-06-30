@@ -45,13 +45,25 @@ let chosenDrawing = null; // couche dessin/pinceau (quand on dessine sur un GIF)
 let incomingAudio = null; // musique en cours de lecture à la réception
 let activeSounds = []; // sons du soundboard en cours de lecture
 
-// Coupe tout ce qui joue (musiques + sons reçus). Lié à la touche Échap + clic sur le toast.
+// Affiche/masque le bouton STOP selon qu'un son joue ou non.
+function updateStopBtn() {
+  const btn = document.getElementById('stopBtn');
+  if (btn) btn.hidden = !(incomingAudio || activeSounds.length > 0);
+}
+// Coupe tout ce qui joue ICI.
 function stopAllAudio() {
   if (incomingAudio) { try { incomingAudio.pause(); } catch (_) {} incomingAudio = null; }
   activeSounds.forEach((a) => { try { a.pause(); } catch (_) {} });
   activeSounds = [];
+  updateStopBtn();
 }
-window.addEventListener('keydown', (e) => { if (e.key === 'Escape') stopAllAudio(); });
+// Coupe ICI et chez TOUT LE MONDE.
+function stopEverywhere() {
+  stopAllAudio();
+  if (ws && ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({ type: 'stop-sound' }));
+}
+window.addEventListener('keydown', (e) => { if (e.key === 'Escape') stopEverywhere(); });
+document.getElementById('stopBtn').addEventListener('click', stopEverywhere);
 
 // Joue la musique reçue depuis la fenêtre principale (lecture audio plus fiable
 // que dans la pop-up transparente), et l'arrête à la fin de la durée du mème.
@@ -65,11 +77,13 @@ function playIncomingAudio(src, duration, volume) {
   audio.volume = typeof volume === 'number' ? Math.max(0, Math.min(1, volume)) : 1;
   audio.play().catch(() => {});
   incomingAudio = audio;
+  updateStopBtn();
   const ms = Math.max(1, Number(duration) || 5) * 1000;
   setTimeout(() => {
     if (incomingAudio === audio) {
       try { audio.pause(); } catch (_) {}
       incomingAudio = null;
+      updateStopBtn();
     }
   }, ms);
 }
@@ -442,9 +456,12 @@ function connect() {
         a.volume = typeof msg.volume === 'number' ? Math.max(0, Math.min(1, msg.volume)) : 1;
         a.play().catch(() => {});
         activeSounds.push(a);
-        a.addEventListener('ended', () => { activeSounds = activeSounds.filter((x) => x !== a); });
+        updateStopBtn();
+        a.addEventListener('ended', () => { activeSounds = activeSounds.filter((x) => x !== a); updateStopBtn(); });
       } catch (_) {}
       showToast('🔊 ' + (msg.name || 'son') + (msg.from ? ' — ' + msg.from : ''));
+    } else if (msg.type === 'stop-sound') {
+      stopAllAudio(); // quelqu'un a coupé : on arrête ici aussi
     }
   };
 }
@@ -604,17 +621,23 @@ window.api.onShortcutFired((combo) => {
 });
 window.refreshSoundShortcuts(); // (ré)enregistre les raccourcis au lancement
 
+// Stop depuis le menu de la barre système
+window.api.onTrayStop(() => stopEverywhere());
+// Avertissement si une combinaison de raccourci a été refusée (déjà prise / réservée Windows)
+window.api.onShortcutsFailed((failed) => {
+  if (failed && failed.length) {
+    showToast('⚠️ Raccourci refusé : ' + failed.join(', ') + ' — essaie une autre combo (ex. Ctrl+1).');
+  }
+});
+
 // Petit message éphémère (réception d'un son, etc.)
 let toastTimer = null;
 function showToast(text) {
   const el = document.getElementById('toast');
-  el.textContent = text + '  ⏹️';
+  el.textContent = text;
   el.hidden = false;
-  el.style.cursor = 'pointer';
-  el.title = 'Cliquer (ou Échap) pour couper le son';
-  el.onclick = () => { stopAllAudio(); el.hidden = true; };
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => { el.hidden = true; }, 3000);
+  toastTimer = setTimeout(() => { el.hidden = true; }, 3500);
 }
 
 connect();

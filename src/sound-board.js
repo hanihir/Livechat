@@ -107,26 +107,35 @@
     });
     tile.appendChild(play);
 
-    // bouton raccourci (coin haut-gauche) : affiche la combinaison si assignée
+    // coin haut-gauche : bouton raccourci (+ bouton ✕ pour retirer si assigné)
+    const kbdWrap = document.createElement('div');
+    kbdWrap.className = 'kbd-wrap';
+    const combo = comboFor(s);
     const kbd = document.createElement('button');
     kbd.className = 'sound-kbd';
-    const combo = comboFor(s);
     kbd.textContent = combo || '⌨️';
-    kbd.title = combo ? 'Raccourci : ' + combo + ' — clic droit pour retirer' : 'Assigner un raccourci clavier';
+    kbd.title = combo ? 'Raccourci : ' + combo + ' (clic = changer)' : 'Assigner un raccourci clavier';
     kbd.addEventListener('click', (e) => {
       e.stopPropagation();
       capturing = s;
       status.textContent = 'Appuie sur ta combinaison pour « ' + s.name + ' »  (Échap = annuler)…';
     });
-    kbd.addEventListener('contextmenu', (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      const k = getKeys();
-      for (const c of Object.keys(k)) if (k[c].data === s.data) delete k[c];
-      setKeys(k);
-      renderGrid();
-    });
-    tile.appendChild(kbd);
+    kbdWrap.appendChild(kbd);
+    if (combo) {
+      const clr = document.createElement('button');
+      clr.className = 'sound-clear';
+      clr.textContent = '✕';
+      clr.title = 'Retirer le raccourci';
+      clr.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const k = getKeys();
+        for (const c of Object.keys(k)) if (k[c].data === s.data) delete k[c];
+        setKeys(k);
+        renderGrid();
+      });
+      kbdWrap.appendChild(clr);
+    }
+    tile.appendChild(kbdWrap);
 
     const name = document.createElement('div');
     name.className = 'sound-name';

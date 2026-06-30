@@ -69,6 +69,9 @@ function createTray() {
   tray.setToolTip('LiveChatr');
   tray.setContextMenu(Menu.buildFromTemplate([
     { label: 'Ouvrir LiveChatr', click: showWindow },
+    { label: '🔇 Couper les sons (tous)', click: () => {
+      if (controlWindow && !controlWindow.isDestroyed()) controlWindow.webContents.send('tray-stop');
+    } },
     { type: 'separator' },
     { label: 'Quitter', click: () => { isQuitting = true; app.quit(); } },
   ]));
@@ -203,15 +206,21 @@ ipcMain.on('poll-tally-up', (_event, data) => {
 // Raccourcis clavier globaux : on (ré)enregistre la liste demandée par l'interface.
 ipcMain.on('register-shortcuts', (_event, combos) => {
   try { globalShortcut.unregisterAll(); } catch (_) {}
+  const failed = [];
   (combos || []).forEach((combo) => {
+    let ok = false;
     try {
-      globalShortcut.register(combo, () => {
+      ok = globalShortcut.register(combo, () => {
         if (controlWindow && !controlWindow.isDestroyed()) {
           controlWindow.webContents.send('shortcut-fired', combo);
         }
       });
-    } catch (_) { /* combinaison invalide ou déjà prise */ }
+    } catch (_) { ok = false; }
+    if (!ok) failed.push(combo); // déjà pris / réservé par Windows (souvent les Alt+chiffre)
   });
+  if (controlWindow && !controlWindow.isDestroyed()) {
+    controlWindow.webContents.send('shortcuts-failed', failed);
+  }
 });
 
 app.on('will-quit', () => { try { globalShortcut.unregisterAll(); } catch (_) {} });

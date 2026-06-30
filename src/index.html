@@ -351,13 +351,17 @@
       border: 2px solid var(--ink); border-radius: 50%; background: var(--yellow); cursor: pointer;
       font-size: 13px; line-height: 1; padding: 0; display: flex; align-items: center; justify-content: center;
     }
+    .kbd-wrap { position: absolute; top: 6px; left: 6px; display: flex; gap: 4px; max-width: 78%; }
     .sound-kbd {
-      position: absolute; top: 6px; left: 6px; max-width: 64%;
       border: 2px solid var(--ink); border-radius: 8px; background: var(--blue); color: #fff; cursor: pointer;
       font-family: var(--font-display); font-size: 10px; font-weight: 700; padding: 2px 6px; line-height: 1.15;
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
     .sound-kbd:hover { background: var(--pink); }
+    .sound-clear {
+      border: 2px solid var(--ink); border-radius: 8px; background: var(--coral); color: #fff; cursor: pointer;
+      font-size: 10px; font-weight: 800; padding: 2px 5px; line-height: 1.15; flex: 0 0 auto;
+    }
     .toast {
       position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%);
       background: var(--ink); color: var(--paper); border: 2.5px solid var(--ink);
@@ -365,6 +369,15 @@
       padding: 10px 18px; border-radius: 999px; box-shadow: var(--sh); z-index: 1200;
     }
     .toast[hidden] { display: none; }
+    .stop-btn {
+      position: fixed; left: 50%; bottom: 72px; transform: translateX(-50%);
+      background: var(--coral); color: #fff; border: var(--bd); border-radius: 999px;
+      font-family: var(--font-display); font-weight: 800; font-size: 14px;
+      padding: 11px 20px; cursor: pointer; box-shadow: var(--sh); z-index: 1250;
+    }
+    .stop-btn[hidden] { display: none; }
+    .stop-btn:hover { transform: translateX(-50%) translateY(-1px); }
+    .stop-btn:active { transform: translateX(-50%) translateY(2px); box-shadow: 1px 1px 0 var(--ink); }
   </style>
 </head>
 <body>
@@ -678,6 +691,7 @@
     <div class="sound-grid" id="soundGrid"></div>
   </div>
 
+  <button id="stopBtn" class="stop-btn" hidden>⏹️ Couper le son (Échap)</button>
   <div id="toast" class="toast" hidden></div>
 
   <script src="meme-editor.js"></script>

@@ -23,4 +23,7 @@ contextBridge.exposeInMainWorld('api', {
   // --- Raccourcis clavier globaux (soundboard) ---
   registerShortcuts: (combos) => ipcRenderer.send('register-shortcuts', combos),
   onShortcutFired: (cb) => ipcRenderer.on('shortcut-fired', (_e, combo) => cb(combo)),
+  onShortcutsFailed: (cb) => ipcRenderer.on('shortcuts-failed', (_e, failed) => cb(failed)),
+  // --- Stop son depuis la barre système ---
+  onTrayStop: (cb) => ipcRenderer.on('tray-stop', () => cb()),
 });

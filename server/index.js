@@ -131,6 +131,12 @@ wss.on('connection', (ws) => {
       });
       return;
     }
+
+    // Stop : couper les sons en cours chez tout le monde.
+    if (msg.type === 'stop-sound') {
+      broadcastAll({ type: 'stop-sound' });
+      return;
+    }
   });
 
   ws.on('close', () => {
