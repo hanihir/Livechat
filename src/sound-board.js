@@ -38,7 +38,7 @@
     else if (key === ' ') key = 'Space';
     else if (key.length === 1) key = key.toUpperCase();
     parts.push(key);
-    return parts.length >= 2 ? parts.join('+') : null;
+    return parts.join('+'); // n'importe quelle touche, seule ou en combo
   }
   document.addEventListener('keydown', (e) => {
     if (overlay.hidden) return;
@@ -46,12 +46,12 @@
     e.preventDefault();
     if (e.key === 'Escape') { capturing = null; status.textContent = 'Assignation annulée.'; return; }
     const accel = buildAccel(e);
-    if (!accel) { status.textContent = 'Il faut un modificateur (Ctrl / Alt / Maj) + une touche…'; return; }
+    if (!accel) { status.textContent = 'Appuie sur une touche (ou une combinaison)…'; return; }
     const k = getKeys();
     for (const c of Object.keys(k)) if (k[c].data === capturing.data) delete k[c]; // 1 son = 1 raccourci
     k[accel] = { name: capturing.name, data: capturing.data };
     setKeys(k);
-    status.textContent = '⌨️ ' + accel + ' → ' + capturing.name;
+    status.textContent = '⌨️ ' + accel + ' → ' + capturing.name + (accel.includes('+') ? '' : '  (touche captée partout)');
     capturing = null;
     renderGrid();
   }, true);
@@ -118,7 +118,7 @@
     kbd.addEventListener('click', (e) => {
       e.stopPropagation();
       capturing = s;
-      status.textContent = 'Appuie sur ta combinaison pour « ' + s.name + ' »  (Échap = annuler)…';
+      status.textContent = 'Appuie sur LA touche (ou combo) de ton choix pour « ' + s.name + ' »  (Échap = annuler)…';
     });
     kbdWrap.appendChild(kbd);
     if (combo) {
