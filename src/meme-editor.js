@@ -294,7 +294,7 @@
       });
     }
 
-    const dataUrl = canvas.toDataURL('image/png');
+    const dataUrl = canvas.toDataURL('image/jpeg', 0.85); // JPEG = plus léger -> envoi rapide
     if (onDone) onDone(dataUrl);
     close();
   });

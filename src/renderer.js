@@ -129,6 +129,13 @@ els.server.addEventListener('change', () => {
   connect();
 });
 
+// Garde le serveur gratuit (Render) éveillé : un petit ping HTTP toutes les 10 min
+// évite les démarrages à froid (~30-60 s) qui ajoutent du délai.
+setInterval(() => {
+  const httpUrl = (els.server.value || DEFAULT_SERVER).replace(/^wss?:/i, 'https:');
+  window.api.httpJson(httpUrl).catch(() => {});
+}, 10 * 60 * 1000);
+
 // --- Réglages : ce qu'on accepte de recevoir ---
 const recv = (() => {
   try { return JSON.parse(localStorage.getItem('recv') || '{}'); } catch (_) { return {}; }
@@ -325,7 +332,7 @@ function resizeImage(dataUrl) {
     canvas.width = width;
     canvas.height = height;
     canvas.getContext('2d').drawImage(img, 0, 0, width, height);
-    imageData = canvas.toDataURL('image/png');
+    imageData = canvas.toDataURL('image/jpeg', 0.82); // JPEG = bien plus léger -> envoi rapide
     chosenTexts = null;
     chosenDrawing = null;
     els.preview.innerHTML = `<img src="${imageData}" alt="aperçu" />`;
