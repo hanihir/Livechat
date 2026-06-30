@@ -390,6 +390,22 @@
     .rec-actions { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
     .rec-name { border: var(--bd); border-radius: 10px; padding: 9px 12px; font: inherit; font-weight: 600; }
 
+    /* étoile favori (coin bas-droit) */
+    .sound-fav {
+      position: absolute; bottom: 8px; right: 8px; width: 28px; height: 28px;
+      border: 2px solid var(--ink); border-radius: 50%; background: rgba(255,255,255,.85); cursor: pointer;
+      font-size: 14px; line-height: 1; padding: 0; display: flex; align-items: center; justify-content: center;
+    }
+    .sound-fav:hover { transform: scale(1.12); }
+    .sound-tile.is-fav { box-shadow: 5px 5px 0 var(--ink), inset 0 0 0 3px var(--yellow); }
+
+    /* mode réorganisation (drag & drop) */
+    #soundReorder.on { background: var(--lime); }
+    .sound-tile.reorder { cursor: grab; }
+    .sound-tile.reorder:active { cursor: grabbing; }
+    .sound-tile.drag-over { outline: 3px dashed var(--pink); outline-offset: -5px; }
+    .sound-tile.dragging { opacity: .45; }
+
     /* mode « appuie sur une touche » */
     .sound-tile.capturing { outline: 3px dashed var(--blue); outline-offset: -6px; }
     .sound-tile.capturing .sound-name::after { content: ' — appuie sur une touche…'; font-weight: 600; font-size: 12px; }
@@ -723,6 +739,7 @@
     <div style="text-align:center; margin-bottom:14px;">
       <button class="btn primary" id="soundImport">➕ Importer un son</button>
       <button class="btn" id="soundRec">🎙️ Enregistrer ma voix</button>
+      <button class="btn" id="soundReorder">↕️ Réorganiser</button>
       <input type="file" id="soundFile" accept="audio/*" hidden />
       <div class="sub" style="margin-top:8px;">Clique un son pour le balancer à tout le monde 🔊 — tu peux <b>spammer</b> ! (▶️ pour écouter avant)</div>
     </div>

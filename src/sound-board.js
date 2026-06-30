@@ -114,17 +114,91 @@
   const soundFilter = document.getElementById('soundFilter');
   if (soundFilter) soundFilter.addEventListener('input', renderGrid);
 
+  // --- Favoris (épinglés en haut) ---
+  function getFavs() { try { return JSON.parse(localStorage.getItem('soundFavs') || '[]'); } catch (_) { return []; } }
+  function setFavs(a) { localStorage.setItem('soundFavs', JSON.stringify(a)); }
+  function isFav(s) { return getFavs().includes(s.id); }
+  function toggleFav(s) {
+    let a = getFavs();
+    a = a.includes(s.id) ? a.filter((x) => x !== s.id) : a.concat(s.id);
+    setFavs(a);
+  }
+
+  // --- Ordre personnalisé (drag & drop) ---
+  function getOrder() { try { return JSON.parse(localStorage.getItem('soundOrder') || '[]'); } catch (_) { return []; } }
+  function setOrder(a) { localStorage.setItem('soundOrder', JSON.stringify(a)); }
+
+  // Trie : favoris d'abord, puis l'ordre perso (les nouveaux sons restent à la fin).
+  function arrange() {
+    const favs = getFavs(), order = getOrder();
+    const rank = (id) => { const i = order.indexOf(id); return i < 0 ? 1e9 : i; };
+    return currentSounds.slice().sort((a, b) => {
+      const fa = favs.includes(a.id), fb = favs.includes(b.id);
+      if (fa !== fb) return fa ? -1 : 1;
+      return rank(a.id) - rank(b.id);
+    });
+  }
+
+  // --- Mode réorganisation ---
+  let reordering = false;
+  const reorderBtn = document.getElementById('soundReorder');
+  reorderBtn.addEventListener('click', () => {
+    reordering = !reordering;
+    reorderBtn.classList.toggle('on', reordering);
+    reorderBtn.textContent = reordering ? '✅ Terminé' : '↕️ Réorganiser';
+    status.textContent = reordering
+      ? '↕️ Glisse les sons pour les réorganiser (clique « Terminé » pour finir).'
+      : currentSounds.length + ' sons — clique pour envoyer 🔊';
+    renderGrid();
+  });
+
+  let dragId = null;
+  function persistFromDOM() {
+    // reconstruit l'ordre à partir de l'affichage, en gardant les sons cachés par le filtre
+    const shown = Array.from(grid.children).map((el) => el.dataset.id);
+    const rest = arrange().map((s) => s.id).filter((id) => !shown.includes(id));
+    setOrder(shown.concat(rest));
+  }
+
   function renderGrid() {
     grid.innerHTML = '';
     const q = (soundFilter && soundFilter.value || '').trim().toLowerCase();
-    const list = q ? currentSounds.filter((s) => (s.name || '').toLowerCase().includes(q)) : currentSounds;
+    let list = arrange();
+    if (q) list = list.filter((s) => (s.name || '').toLowerCase().includes(q));
     list.forEach((s, i) => grid.appendChild(makeTile(s, i)));
   }
 
   function makeTile(s, idx) {
     const tile = document.createElement('div');
-    tile.className = 'sound-tile' + (capturing && capturing.data === s.data ? ' capturing' : '');
+    tile.className = 'sound-tile'
+      + (capturing && capturing.data === s.data ? ' capturing' : '')
+      + (isFav(s) ? ' is-fav' : '')
+      + (reordering ? ' reorder' : '');
+    tile.dataset.id = s.id;
     tile.style.setProperty('--accent', PADS[idx % PADS.length]);
+
+    // --- Réorganisation : glisser-déposer ---
+    if (reordering) {
+      tile.draggable = true;
+      tile.addEventListener('dragstart', (e) => {
+        dragId = s.id; tile.classList.add('dragging');
+        try { e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/plain', s.id); } catch (_) {}
+      });
+      tile.addEventListener('dragend', () => { tile.classList.remove('dragging'); dragId = null; });
+      tile.addEventListener('dragover', (e) => { e.preventDefault(); tile.classList.add('drag-over'); });
+      tile.addEventListener('dragleave', () => tile.classList.remove('drag-over'));
+      tile.addEventListener('drop', (e) => {
+        e.preventDefault();
+        tile.classList.remove('drag-over');
+        const from = grid.querySelector('[data-id="' + dragId + '"]');
+        if (!from || from === tile) return;
+        const items = Array.from(grid.children);
+        // insère l'élément glissé avant ou après la cible selon le sens
+        if (items.indexOf(from) < items.indexOf(tile)) grid.insertBefore(from, tile.nextSibling);
+        else grid.insertBefore(from, tile);
+        persistFromDOM();
+      });
+    }
 
     const play = document.createElement('button');
     play.className = 'sound-play';
@@ -175,8 +249,18 @@
     name.textContent = s.name;
     tile.appendChild(name);
 
+    // coin bas-droit : étoile favori (épingle en haut de la grille)
+    const fav = document.createElement('button');
+    fav.className = 'sound-fav';
+    fav.textContent = isFav(s) ? '⭐' : '☆';
+    fav.title = isFav(s) ? 'Retirer des favoris' : 'Mettre en favori (épinglé en haut)';
+    fav.addEventListener('click', (e) => { e.stopPropagation(); toggleFav(s); renderGrid(); });
+    tile.appendChild(fav);
+
     // Clic = on envoie à tout le monde. On NE ferme PAS (pour pouvoir spammer).
+    // (désactivé pendant la réorganisation)
     tile.addEventListener('click', () => {
+      if (reordering) return;
       window.sendSound(s, getVol());
       tile.classList.add('hit');
       setTimeout(() => tile.classList.remove('hit'), 180);
