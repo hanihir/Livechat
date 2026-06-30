@@ -418,26 +418,38 @@
     .toast[hidden] { display: none; }
     /* Barre de saisie de message (chat) */
     .chat-bar {
-      position: fixed; left: 50%; bottom: 18px; transform: translateX(-50%);
-      display: flex; gap: 8px; align-items: center; flex-wrap: wrap; width: min(94%, 640px);
-      background: var(--paper); border: var(--bd); border-radius: 22px;
-      box-shadow: var(--sh); padding: 9px 12px; z-index: 1300;
+      position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%);
+      width: min(94%, 520px); background: var(--paper); border: var(--bd); border-radius: 18px;
+      box-shadow: var(--sh); padding: 14px; z-index: 1300;
+      display: flex; flex-direction: column; gap: 12px;
     }
     .chat-bar[hidden] { display: none; }
+    .chat-head { display: flex; align-items: center; justify-content: space-between; }
+    .chat-title { font-family: var(--font-display); font-weight: 800; font-size: 16px; }
+    .chat-x { border: 2px solid var(--ink); background: var(--card); border-radius: 8px; width: 28px; height: 28px; cursor: pointer; font-size: 13px; font-weight: 800; line-height: 1; }
+    .chat-x:hover { background: var(--coral); color: #fff; }
+    .chat-row { display: flex; gap: 8px; align-items: center; }
     .chat-bar input {
-      flex: 1 1 180px; min-width: 140px; border: none; background: transparent; outline: none;
-      font: inherit; font-size: 16px; font-weight: 600; color: var(--ink);
+      flex: 1; border: var(--bd); border-radius: 12px; background: #fff; padding: 11px 14px;
+      font: inherit; font-size: 16px; font-weight: 600; color: var(--ink); outline: none;
     }
-    .chat-opt {
-      flex: 0 0 auto; border: 2px solid var(--ink); border-radius: 10px; background: var(--card);
-      font: inherit; font-size: 13px; font-weight: 700; color: var(--ink); padding: 6px 6px; cursor: pointer;
-    }
+    .chat-bar input:focus { box-shadow: 3px 3px 0 var(--ink); }
     .chat-bar .chat-send {
-      flex: 0 0 auto; border: 2.5px solid var(--ink); border-radius: 999px;
+      flex: 0 0 auto; border: var(--bd); border-radius: 12px;
       background: var(--lime); font-family: var(--font-display); font-weight: 800; font-size: 15px;
-      padding: 9px 18px; cursor: pointer;
+      padding: 11px 16px; cursor: pointer;
     }
-    .chat-bar .chat-send:hover { background: var(--pink); color: #fff; }
+    .chat-bar .chat-send:hover { background: var(--pink); color: #fff; transform: translate(-1px,-1px); }
+    .chat-controls { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .chat-lbl { font-size: 12px; font-weight: 700; color: var(--muted); }
+    .seg { display: inline-flex; border: 2px solid var(--ink); border-radius: 10px; overflow: hidden; }
+    .seg button {
+      border: none; border-right: 2px solid var(--ink); background: var(--card); cursor: pointer;
+      font-family: var(--font-display); font-weight: 800; font-size: 14px; min-width: 32px; padding: 6px 8px; color: var(--ink);
+    }
+    .seg button:last-child { border-right: none; }
+    .seg button:hover { background: var(--yellow); }
+    .seg button.on { background: var(--blue); color: #fff; }
     .stop-btn {
       position: fixed; left: 50%; bottom: 72px; transform: translateX(-50%);
       background: var(--coral); color: #fff; border: var(--bd); border-radius: 999px;
@@ -799,20 +811,30 @@
 
   <button id="stopBtn" class="stop-btn" hidden>⏹️ Couper le son (Échap)</button>
   <div id="chatBar" class="chat-bar" hidden>
-    <input id="chatInput" type="text" maxlength="280" placeholder="💬 Écris un message…" />
-    <select id="chatPos" class="chat-opt" title="Position à l'écran">
-      <option value="bottom-right">↘ Bas-droite</option>
-      <option value="bottom-left">↙ Bas-gauche</option>
-      <option value="top-right">↗ Haut-droite</option>
-      <option value="top-left">↖ Haut-gauche</option>
-      <option value="center">◎ Centre</option>
-    </select>
-    <select id="chatSize" class="chat-opt" title="Taille du texte">
-      <option value="small">A⁻ Petit</option>
-      <option value="medium" selected>A Moyen</option>
-      <option value="large">A⁺ Grand</option>
-    </select>
-    <button id="chatSend" class="chat-send">Envoyer</button>
+    <div class="chat-head">
+      <span class="chat-title">💬 Message</span>
+      <button id="chatClose" class="chat-x" title="Fermer">✕</button>
+    </div>
+    <div class="chat-row">
+      <input id="chatInput" type="text" maxlength="280" placeholder="Écris ton message…" />
+      <button id="chatSend" class="chat-send">Envoyer ➤</button>
+    </div>
+    <div class="chat-controls">
+      <span class="chat-lbl">📍 Position</span>
+      <div class="seg" id="chatPos">
+        <button data-v="top-left" title="Haut-gauche">↖</button>
+        <button data-v="top-right" title="Haut-droite">↗</button>
+        <button data-v="center" title="Centre">◎</button>
+        <button data-v="bottom-left" title="Bas-gauche">↙</button>
+        <button data-v="bottom-right" title="Bas-droite" class="on">↘</button>
+      </div>
+      <span class="chat-lbl">🔤 Taille</span>
+      <div class="seg" id="chatSize">
+        <button data-v="small">A⁻</button>
+        <button data-v="medium" class="on">A</button>
+        <button data-v="large">A⁺</button>
+      </div>
+    </div>
   </div>
   <div id="toast" class="toast" hidden></div>
 

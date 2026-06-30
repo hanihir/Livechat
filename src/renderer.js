@@ -502,22 +502,31 @@ window.sendMessage = function (text, opts) {
   const input = document.getElementById('chatInput');
   const sendBtn = document.getElementById('chatSend');
   const openBtn = document.getElementById('openChat');
-  const posSel = document.getElementById('chatPos');
-  const sizeSel = document.getElementById('chatSize');
-  // restaure les derniers réglages
-  posSel.value = localStorage.getItem('chatPos') || 'bottom-right';
-  sizeSel.value = localStorage.getItem('chatSize') || 'medium';
-  posSel.addEventListener('change', () => localStorage.setItem('chatPos', posSel.value));
-  sizeSel.addEventListener('change', () => localStorage.setItem('chatSize', sizeSel.value));
+  const closeBtn = document.getElementById('chatClose');
+
+  // Boutons segmentés (position / taille) : un seul actif, valeur mémorisée.
+  function seg(id, storeKey, fallback) {
+    const group = document.getElementById(id);
+    let val = localStorage.getItem(storeKey) || fallback;
+    const apply = () => group.querySelectorAll('button').forEach((b) => b.classList.toggle('on', b.dataset.v === val));
+    group.querySelectorAll('button').forEach((b) => b.addEventListener('click', () => {
+      val = b.dataset.v; localStorage.setItem(storeKey, val); apply();
+    }));
+    apply();
+    return () => val;
+  }
+  const getPos = seg('chatPos', 'chatPos', 'bottom-right');
+  const getSize = seg('chatSize', 'chatSize', 'medium');
 
   function openBar() { bar.hidden = false; input.focus(); }
   function closeBar() { bar.hidden = true; input.value = ''; }
   function fire() {
-    if (window.sendMessage(input.value, { pos: posSel.value, size: sizeSel.value })) {
+    if (window.sendMessage(input.value, { pos: getPos(), size: getSize() })) {
       input.value = ''; input.focus();
     }
   }
   openBtn.addEventListener('click', () => { bar.hidden ? openBar() : closeBar(); });
+  closeBtn.addEventListener('click', closeBar);
   sendBtn.addEventListener('click', fire);
   input.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') { e.preventDefault(); fire(); }
