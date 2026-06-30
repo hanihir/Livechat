@@ -88,8 +88,8 @@
     const f = fileInput.files[0];
     fileInput.value = '';
     if (!f) return;
-    if (f.size > 1024 * 1024) {
-      status.textContent = 'Son trop lourd (max 1 Mo).';
+    if (f.size > 10 * 1024 * 1024) {
+      status.textContent = 'Son trop lourd (max 10 Mo).';
       return;
     }
     const reader = new FileReader();

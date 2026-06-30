@@ -27,14 +27,14 @@ window.SB = {
     });
   },
 
-  // Enregistre un mème envoyé dans l'historique partagé (vignette + version pleine taille).
-  async addMeme(author, thumb, full) {
+  // Enregistre un mème envoyé dans l'historique partagé (vignette).
+  async addMeme(author, thumb) {
     if (!this.configured()) return;
     try {
       await this._req('memes', {
         method: 'POST',
         prefer: 'return=minimal',
-        body: { author, thumb, full },
+        body: { author, thumb },
       });
     } catch (e) { /* silencieux : l'historique ne doit jamais bloquer un envoi */ }
   },
@@ -42,7 +42,7 @@ window.SB = {
   // Derniers mèmes envoyés (les plus récents d'abord).
   async getMemes(limit = 60) {
     const res = await this._req(
-      'memes?select=id,created_at,author,thumb,full&order=created_at.desc&limit=' + limit
+      'memes?select=id,created_at,author,thumb&order=created_at.desc&limit=' + limit
     );
     return res.json || [];
   },

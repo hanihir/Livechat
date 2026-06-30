@@ -482,8 +482,8 @@ els.send.addEventListener('click', async () => {
   // Enregistre le mème dans l'historique partagé (vignette + version pleine taille).
   // Les vidéos ne vont pas dans l'historique (trop lourdes / pas de vignette image).
   if (window.SB && window.SB.configured() && !imageData.startsWith('data:video')) {
-    const [thumb, full] = await Promise.all([makeThumb(imageData), makeFull(imageData)]);
-    window.SB.addMeme(myName || 'Anonyme', thumb, full);
+    const thumb = await makeThumb(imageData);
+    window.SB.addMeme(myName || 'Anonyme', thumb);
   }
 });
 
@@ -515,7 +515,7 @@ function makeThumb(dataUrl) {
   return new Promise((resolve) => {
     const img = new Image();
     img.onload = () => {
-      const MAX = 360;
+      const MAX = 560; // assez grand pour la visionneuse, assez léger pour la grille
       let w = img.width;
       let h = img.height;
       const r = Math.min(1, MAX / Math.max(w, h));
@@ -525,7 +525,7 @@ function makeThumb(dataUrl) {
       canvas.width = w;
       canvas.height = h;
       canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-      resolve(canvas.toDataURL('image/jpeg', 0.8));
+      resolve(canvas.toDataURL('image/jpeg', 0.82));
     };
     img.onerror = () => resolve(dataUrl);
     img.src = dataUrl;
