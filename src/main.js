@@ -1,4 +1,5 @@
 const { app, BrowserWindow, ipcMain, screen, Tray, Menu, nativeImage, session, globalShortcut } = require('electron');
+const { autoUpdater } = require('electron-updater');
 const path = require('path');
 
 // Autorise la lecture audio automatique : sinon Chromium bloque le son
@@ -137,6 +138,11 @@ app.whenReady().then(() => {
     // Pour un .exe portable, on pointe vers le vrai fichier (et pas la copie temporaire).
     const exePath = process.env.PORTABLE_EXECUTABLE_FILE || process.execPath;
     app.setLoginItemSettings({ openAtLogin: true, path: exePath, args: ['--hidden'] });
+
+    // Mise à jour automatique : vérifie GitHub, télécharge et installe à la fermeture.
+    autoUpdater.on('error', () => {});
+    autoUpdater.checkForUpdatesAndNotify().catch(() => {});
+    setInterval(() => { autoUpdater.checkForUpdatesAndNotify().catch(() => {}); }, 30 * 60 * 1000);
   }
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createControlWindow();
