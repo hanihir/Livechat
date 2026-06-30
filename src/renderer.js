@@ -479,11 +479,20 @@ function connect() {
   };
 }
 
-// --- Chat : envoyer un message (bulle chez tout le monde) ---
-window.sendMessage = function (text) {
+// --- Chat : envoyer un message (bulle), avec taille, position et destinataires ---
+window.sendMessage = function (text, opts) {
   const t = String(text || '').trim();
   if (!t || !ws || ws.readyState !== WebSocket.OPEN) return false;
-  ws.send(JSON.stringify({ type: 'message', text: t.slice(0, 280) }));
+  opts = opts || {};
+  // mêmes destinataires que la section « 3 · Destinataires »
+  const targets = els.everyone.checked ? [] : [...selectedTargets];
+  ws.send(JSON.stringify({
+    type: 'message',
+    text: t.slice(0, 280),
+    pos: opts.pos || 'bottom-right',
+    size: opts.size || 'medium',
+    targets,
+  }));
   return true;
 };
 
@@ -493,10 +502,20 @@ window.sendMessage = function (text) {
   const input = document.getElementById('chatInput');
   const sendBtn = document.getElementById('chatSend');
   const openBtn = document.getElementById('openChat');
+  const posSel = document.getElementById('chatPos');
+  const sizeSel = document.getElementById('chatSize');
+  // restaure les derniers réglages
+  posSel.value = localStorage.getItem('chatPos') || 'bottom-right';
+  sizeSel.value = localStorage.getItem('chatSize') || 'medium';
+  posSel.addEventListener('change', () => localStorage.setItem('chatPos', posSel.value));
+  sizeSel.addEventListener('change', () => localStorage.setItem('chatSize', sizeSel.value));
+
   function openBar() { bar.hidden = false; input.focus(); }
   function closeBar() { bar.hidden = true; input.value = ''; }
   function fire() {
-    if (window.sendMessage(input.value)) { input.value = ''; input.focus(); }
+    if (window.sendMessage(input.value, { pos: posSel.value, size: sizeSel.value })) {
+      input.value = ''; input.focus();
+    }
   }
   openBtn.addEventListener('click', () => { bar.hidden ? openBar() : closeBar(); });
   sendBtn.addEventListener('click', fire);

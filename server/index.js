@@ -138,13 +138,22 @@ wss.on('connection', (ws) => {
       return;
     }
 
-    // Message texte : petite bulle de chat affichée chez tout le monde (envoyeur inclus).
+    // Message texte : petite bulle de chat (taille + position + destinataires).
     if (msg.type === 'message') {
-      broadcastAll({
+      const payload = JSON.stringify({
         type: 'message',
         text: String(msg.text || '').slice(0, 280),
         from: ws.meta.name,
+        pos: msg.pos || 'bottom-right',
+        size: ['small', 'medium', 'large'].includes(msg.size) ? msg.size : 'medium',
       });
+      const targets =
+        Array.isArray(msg.targets) && msg.targets.length ? new Set(msg.targets) : null;
+      for (const c of wss.clients) {
+        if (c.readyState !== 1) continue;
+        if (targets) { if (targets.has(c.meta.id) || c === ws) c.send(payload); } // cibles + envoyeur
+        else c.send(payload); // tout le monde
+      }
       return;
     }
   });

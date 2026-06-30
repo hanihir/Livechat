@@ -419,14 +419,18 @@
     /* Barre de saisie de message (chat) */
     .chat-bar {
       position: fixed; left: 50%; bottom: 18px; transform: translateX(-50%);
-      display: flex; gap: 8px; align-items: center; width: min(92%, 560px);
-      background: var(--paper); border: var(--bd); border-radius: 999px;
-      box-shadow: var(--sh); padding: 7px 7px 7px 16px; z-index: 1300;
+      display: flex; gap: 8px; align-items: center; flex-wrap: wrap; width: min(94%, 640px);
+      background: var(--paper); border: var(--bd); border-radius: 22px;
+      box-shadow: var(--sh); padding: 9px 12px; z-index: 1300;
     }
     .chat-bar[hidden] { display: none; }
     .chat-bar input {
-      flex: 1; border: none; background: transparent; outline: none;
+      flex: 1 1 180px; min-width: 140px; border: none; background: transparent; outline: none;
       font: inherit; font-size: 16px; font-weight: 600; color: var(--ink);
+    }
+    .chat-opt {
+      flex: 0 0 auto; border: 2px solid var(--ink); border-radius: 10px; background: var(--card);
+      font: inherit; font-size: 13px; font-weight: 700; color: var(--ink); padding: 6px 6px; cursor: pointer;
     }
     .chat-bar .chat-send {
       flex: 0 0 auto; border: 2.5px solid var(--ink); border-radius: 999px;
@@ -795,7 +799,19 @@
 
   <button id="stopBtn" class="stop-btn" hidden>⏹️ Couper le son (Échap)</button>
   <div id="chatBar" class="chat-bar" hidden>
-    <input id="chatInput" type="text" maxlength="280" placeholder="💬 Écris un message à tout le monde…" />
+    <input id="chatInput" type="text" maxlength="280" placeholder="💬 Écris un message…" />
+    <select id="chatPos" class="chat-opt" title="Position à l'écran">
+      <option value="bottom-right">↘ Bas-droite</option>
+      <option value="bottom-left">↙ Bas-gauche</option>
+      <option value="top-right">↗ Haut-droite</option>
+      <option value="top-left">↖ Haut-gauche</option>
+      <option value="center">◎ Centre</option>
+    </select>
+    <select id="chatSize" class="chat-opt" title="Taille du texte">
+      <option value="small">A⁻ Petit</option>
+      <option value="medium" selected>A Moyen</option>
+      <option value="large">A⁺ Grand</option>
+    </select>
     <button id="chatSend" class="chat-send">Envoyer</button>
   </div>
   <div id="toast" class="toast" hidden></div>
