@@ -196,6 +196,32 @@
 
   let mediaRec = null, recChunks = [], recStream = null, recData = null, recTimer = null, recStart0 = 0;
 
+  // --- Choix du micro (réglages) ---
+  const micSelect = document.getElementById('micSelect');
+  async function populateMics() {
+    if (!micSelect) return;
+    try {
+      const mics = (await navigator.mediaDevices.enumerateDevices()).filter((d) => d.kind === 'audioinput');
+      const saved = localStorage.getItem('micId') || '';
+      micSelect.innerHTML = '';
+      const def = document.createElement('option');
+      def.value = ''; def.textContent = 'Micro par défaut de Windows';
+      micSelect.appendChild(def);
+      mics.forEach((d, i) => {
+        const o = document.createElement('option');
+        o.value = d.deviceId;
+        o.textContent = d.label || 'Micro ' + (i + 1);
+        micSelect.appendChild(o);
+      });
+      micSelect.value = saved;
+    } catch (_) {}
+  }
+  if (micSelect) {
+    micSelect.addEventListener('change', () => localStorage.setItem('micId', micSelect.value));
+    populateMics();
+    navigator.mediaDevices.addEventListener && navigator.mediaDevices.addEventListener('devicechange', populateMics);
+  }
+
   function fmtTime(ms) {
     const s = Math.floor(ms / 1000);
     return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
@@ -224,10 +250,14 @@
 
   recStartBtn.addEventListener('click', async () => {
     try {
-      recStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const micId = localStorage.getItem('micId') || '';
+      const audioC = micId ? { deviceId: { exact: micId } } : true;
+      recStream = await navigator.mediaDevices.getUserMedia({ audio: audioC });
+      populateMics(); // les vrais noms de micro sont dispo une fois l'accès accordé
     } catch (e) {
-      status.textContent = '🎙️ Micro inaccessible (occupé ou refusé par Windows).';
-      return;
+      // si le micro choisi n'est plus dispo, on retente avec celui par défaut
+      try { recStream = await navigator.mediaDevices.getUserMedia({ audio: true }); populateMics(); }
+      catch (e2) { status.textContent = '🎙️ Micro inaccessible (occupé ou refusé par Windows).'; return; }
     }
     recChunks = [];
     mediaRec = new MediaRecorder(recStream);

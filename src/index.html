@@ -507,6 +507,11 @@
         <label class="check"><input type="checkbox" id="recvSounds" checked /> 🔊 Sons (soundboard)</label>
       </div>
       <div class="card" style="margin-top: 8px;">
+        <label class="field">🎙️ Micro (pour enregistrer ta voix)</label>
+        <select id="micSelect" class="cam-select" style="width:100%; display:block;"></select>
+        <div class="sub" style="margin: 8px 0 0;">Choisis le micro utilisé par l'enregistrement du soundboard.</div>
+      </div>
+      <div class="card" style="margin-top: 8px;">
         <label class="field">Adresse du serveur</label>
         <input id="server" type="url" placeholder="wss://mon-serveur.onrender.com" />
         <div class="sub" style="margin: 8px 0 0;">
@@ -721,14 +726,14 @@
         <button class="btn primary" id="recStart">🔴 Enregistrer</button>
         <button class="btn" id="recStop" style="display:none;">⏹️ Stop</button>
         <span class="rec-time" id="recTime">0:00</span>
-        <button class="btn ghost" id="recCancel">✕ Fermer</button>
+        <button class="btn" id="recCancel">✕ Fermer</button>
       </div>
       <audio id="recAudio" controls style="display:none; width:100%; margin-top:10px;"></audio>
       <div class="rec-actions" id="recActions" style="display:none;">
         <input id="recName" class="rec-name" placeholder="Nom du son (ex : mon cri)" maxlength="40" />
         <button class="btn primary" id="recSavePerm">💾 Permanent (ajouter au soundboard)</button>
         <button class="btn" id="recSendOnce">⚡ Éphémère — envoyer 1 fois</button>
-        <button class="btn ghost" id="recRetake">↺ Refaire</button>
+        <button class="btn" id="recRetake">↺ Refaire</button>
       </div>
       <div class="sub" id="recHint" style="margin-top:8px;">🎙️ Enregistre avec ton micro, puis garde-le (permanent) ou envoie-le une seule fois (éphémère, non sauvegardé).</div>
     </div>
