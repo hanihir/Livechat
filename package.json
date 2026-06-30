@@ -1,6 +1,6 @@
 {
   "name": "livechatr",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "description": "Envoie une image en plein écran à tous tes amis connectés",
   "main": "src/main.js",
   "author": "Hani",

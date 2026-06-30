@@ -111,9 +111,14 @@
   // palette de couleurs pour égayer les pads (cycle)
   const PADS = ['var(--lime)', 'var(--yellow)', 'var(--pink)', 'var(--blue)', 'var(--coral)', '#9DE7D7'];
 
+  const soundFilter = document.getElementById('soundFilter');
+  if (soundFilter) soundFilter.addEventListener('input', renderGrid);
+
   function renderGrid() {
     grid.innerHTML = '';
-    currentSounds.forEach((s, i) => grid.appendChild(makeTile(s, i)));
+    const q = (soundFilter && soundFilter.value || '').trim().toLowerCase();
+    const list = q ? currentSounds.filter((s) => (s.name || '').toLowerCase().includes(q)) : currentSounds;
+    list.forEach((s, i) => grid.appendChild(makeTile(s, i)));
   }
 
   function makeTile(s, idx) {

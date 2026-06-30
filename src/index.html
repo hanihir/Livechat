@@ -611,6 +611,9 @@
     <div class="lib-search" id="musicSearchWrap">
       <input type="text" id="musicQuery" placeholder="Titre ou artiste… (ex : Booba)" />
     </div>
+    <div class="lib-search" id="musicFilterWrap" style="display:none;">
+      <input type="text" id="musicFilter" placeholder="🔍 Filtrer la liste…" />
+    </div>
     <button class="btn" id="musicImport" style="display:none; margin:0 auto 10px;">➕ Importer un son</button>
     <input type="file" id="musicFile" accept="audio/*" hidden />
     <div class="lib-status" id="musicStatus"></div>
@@ -741,6 +744,9 @@
       <label style="font-size:12px; color:var(--muted); min-width:64px;">🔊 Volume</label>
       <input type="range" id="soundVol" min="0" max="100" value="100" />
       <span class="dur"><span id="soundVolVal">100</span>%</span>
+    </div>
+    <div class="lib-search" style="max-width:340px; margin:0 auto 12px;">
+      <input type="text" id="soundFilter" placeholder="🔍 Filtrer les sons…" />
     </div>
     <div class="lib-status" id="soundStatus"></div>
     <div class="sound-grid" id="soundGrid"></div>

@@ -9,6 +9,8 @@
   const tabSound = document.getElementById('tabSound');
   const searchWrap = document.getElementById('musicSearchWrap');
   const query = document.getElementById('musicQuery');
+  const filterWrap = document.getElementById('musicFilterWrap');
+  const filterInput = document.getElementById('musicFilter');
   const importBtn = document.getElementById('musicImport');
   const fileInput = document.getElementById('musicFile');
   const status = document.getElementById('musicStatus');
@@ -17,6 +19,8 @@
   const MAX_IMPORT = 5 * 1024 * 1024;
   let onChoose = null;
   let mode = 'search';
+  let allTracks = [];   // liste complète affichée (avant filtre)
+  let curOpts = {};
   let searchTimer = null;
   const preview = new Audio();
   let playingBtn = null;
@@ -31,6 +35,7 @@
   tabSound.addEventListener('click', () => setMode('sound'));
 
   query.addEventListener('input', () => { clearTimeout(searchTimer); searchTimer = setTimeout(search, 450); });
+  filterInput.addEventListener('input', applyFilter);
 
   // Échap : stoppe l'aperçu en cours
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !overlay.hidden) stopPreview(); });
@@ -43,6 +48,9 @@
     tabMusFav.classList.toggle('active', m === 'favoris');
     tabSound.classList.toggle('active', m === 'sound');
     searchWrap.style.display = m === 'search' ? 'block' : 'none';
+    // barre de filtre : sur les listes (mes sons / favoris / soundboard)
+    filterWrap.style.display = m === 'search' ? 'none' : 'block';
+    filterInput.value = '';
     importBtn.style.display = m === 'mine' ? 'block' : 'none';
     list.innerHTML = '';
     if (m === 'search') { query.value = ''; status.textContent = 'Tape le nom d\'une chanson ou d\'un artiste 🎤'; }
@@ -79,7 +87,7 @@
   function renderFavoris() {
     const f = getFavs();
     status.textContent = f.length ? f.length + ' favoris' : 'Aucun favori. Clique l\'étoile ⭐ sur une musique.';
-    renderTracks(f, {});
+    showTracks(f, {});
   }
 
   // ---------- Soundboard (sons partagés à coller sur un mème) ----------
@@ -89,7 +97,7 @@
     let sounds;
     try { sounds = await window.SB.getSounds(); } catch (e) { status.textContent = 'Erreur de chargement.'; return; }
     status.textContent = sounds.length + ' sons — choisis-en un à coller sur ton mème/GIF';
-    renderTracks(sounds.map((s) => ({ name: s.name, artist: 'son', src: s.data, art: '' })), {});
+    showTracks(sounds.map((s) => ({ name: s.name, artist: 'son', src: s.data, art: '' })), {});
   }
 
   // ---------- Recherche iTunes ----------
@@ -129,7 +137,17 @@
   function renderMine() {
     const songs = getMine();
     status.textContent = songs.length ? songs.length + ' son(s) importé(s)' : 'Aucun son importé. Clique « ➕ Importer un son ».';
-    renderTracks(songs.map((s) => ({ name: s.name, artist: '', art: '', src: s.src })), { mine: true });
+    showTracks(songs.map((s) => ({ name: s.name, artist: '', art: '', src: s.src })), { mine: true });
+  }
+
+  // ---------- Filtre de liste ----------
+  function showTracks(tracks, opts) { allTracks = tracks || []; curOpts = opts || {}; applyFilter(); }
+  function applyFilter() {
+    const q = (filterInput.value || '').trim().toLowerCase();
+    const filtered = q
+      ? allTracks.filter((t) => ((t.name || '') + ' ' + (t.artist || '')).toLowerCase().includes(q))
+      : allTracks;
+    renderTracks(filtered, curOpts);
   }
 
   // ---------- Rendu d'une liste ----------
@@ -176,7 +194,7 @@
         const del = document.createElement('button');
         del.className = 'del'; del.textContent = '🗑️';
         del.addEventListener('click', () => {
-          const arr = getMine(); arr.splice(idx, 1); setMine(arr); stopPreview(); renderMine();
+          const arr = getMine().filter((s) => s.src !== t.src); setMine(arr); stopPreview(); renderMine();
         });
         row.appendChild(del);
       }
