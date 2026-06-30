@@ -154,6 +154,48 @@ ipcMain.on('show-overlay', (_event, payload) => {
   createOverlay(payload);
 });
 
+// --- Bulles de chat : fenêtre persistante, transparente, clic-traversant ---
+let bubbleWindow = null;
+function getBubbleWindow() {
+  if (bubbleWindow && !bubbleWindow.isDestroyed()) return bubbleWindow;
+  const display = screen.getPrimaryDisplay();
+  const { x, y, width, height } = display.bounds;
+  bubbleWindow = new BrowserWindow({
+    x, y, width, height,
+    frame: false,
+    transparent: true,
+    alwaysOnTop: true,
+    skipTaskbar: true,
+    resizable: false,
+    movable: false,
+    minimizable: false,
+    maximizable: false,
+    focusable: false,
+    hasShadow: false,
+    fullscreenable: false,
+    show: false,
+    webPreferences: {
+      preload: path.join(__dirname, 'preload.js'),
+      contextIsolation: true,
+      nodeIntegration: false,
+    },
+  });
+  bubbleWindow.setAlwaysOnTop(true, 'screen-saver');
+  bubbleWindow.setIgnoreMouseEvents(true); // les clics passent à travers
+  bubbleWindow.setVisibleOnAllWorkspaces(true);
+  bubbleWindow.loadFile(path.join(__dirname, 'bubbles.html'));
+  bubbleWindow.on('closed', () => { bubbleWindow = null; });
+  return bubbleWindow;
+}
+
+// Affiche une bulle de message (reçue via le WebSocket par la fenêtre de contrôle).
+ipcMain.on('show-bubble', (_event, data) => {
+  const win = getBubbleWindow();
+  const send = () => { if (win && !win.isDestroyed()) { win.showInactive(); win.webContents.send('bubble-data', data); } };
+  if (win.webContents.isLoading()) win.webContents.once('did-finish-load', send);
+  else send();
+});
+
 // --- Fenêtre de sondage (interactive : on clique pour voter) ---
 function createPollWindow(data) {
   if (pollWindow && !pollWindow.isDestroyed()) pollWindow.close();

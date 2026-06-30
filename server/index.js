@@ -137,6 +137,16 @@ wss.on('connection', (ws) => {
       broadcastAll({ type: 'stop-sound' });
       return;
     }
+
+    // Message texte : petite bulle de chat affichée chez tout le monde (envoyeur inclus).
+    if (msg.type === 'message') {
+      broadcastAll({
+        type: 'message',
+        text: String(msg.text || '').slice(0, 280),
+        from: ws.meta.name,
+      });
+      return;
+    }
   });
 
   ws.on('close', () => {

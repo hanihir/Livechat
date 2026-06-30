@@ -416,6 +416,24 @@
       padding: 10px 18px; border-radius: 999px; box-shadow: var(--sh); z-index: 1200;
     }
     .toast[hidden] { display: none; }
+    /* Barre de saisie de message (chat) */
+    .chat-bar {
+      position: fixed; left: 50%; bottom: 18px; transform: translateX(-50%);
+      display: flex; gap: 8px; align-items: center; width: min(92%, 560px);
+      background: var(--paper); border: var(--bd); border-radius: 999px;
+      box-shadow: var(--sh); padding: 7px 7px 7px 16px; z-index: 1300;
+    }
+    .chat-bar[hidden] { display: none; }
+    .chat-bar input {
+      flex: 1; border: none; background: transparent; outline: none;
+      font: inherit; font-size: 16px; font-weight: 600; color: var(--ink);
+    }
+    .chat-bar .chat-send {
+      flex: 0 0 auto; border: 2.5px solid var(--ink); border-radius: 999px;
+      background: var(--lime); font-family: var(--font-display); font-weight: 800; font-size: 15px;
+      padding: 9px 18px; cursor: pointer;
+    }
+    .chat-bar .chat-send:hover { background: var(--pink); color: #fff; }
     .stop-btn {
       position: fixed; left: 50%; bottom: 72px; transform: translateX(-50%);
       background: var(--coral); color: #fff; border: var(--bd); border-radius: 999px;
@@ -432,6 +450,7 @@
     <div class="brand">📺 livechat <span class="ver" id="appVer"></span></div>
     <div class="topbar-right">
       <span id="pseudoDisplay" class="pseudo-display">—</span>
+      <button id="openChat" class="icon-btn" title="Envoyer un message">💬</button>
       <button id="openSound" class="icon-btn" title="Soundboard">🔊</button>
       <button id="openPoll" class="icon-btn" title="Créer un sondage">📊</button>
       <button id="openHistory" class="icon-btn" title="Historique &amp; classement">🏆</button>
@@ -524,6 +543,7 @@
         <label class="check"><input type="checkbox" id="recvVideos" checked /> 🎬 Vidéos</label>
         <label class="check"><input type="checkbox" id="recvPolls" checked /> 📊 Sondages</label>
         <label class="check"><input type="checkbox" id="recvSounds" checked /> 🔊 Sons (soundboard)</label>
+        <label class="check"><input type="checkbox" id="recvMessages" checked /> 💬 Messages (bulles)</label>
       </div>
       <div class="card" style="margin-top: 8px;">
         <label class="field">🎙️ Micro (pour enregistrer ta voix)</label>
@@ -774,6 +794,10 @@
   </div>
 
   <button id="stopBtn" class="stop-btn" hidden>⏹️ Couper le son (Échap)</button>
+  <div id="chatBar" class="chat-bar" hidden>
+    <input id="chatInput" type="text" maxlength="280" placeholder="💬 Écris un message à tout le monde…" />
+    <button id="chatSend" class="chat-send">Envoyer</button>
+  </div>
   <div id="toast" class="toast" hidden></div>
 
   <script src="meme-editor.js"></script>

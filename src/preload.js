@@ -28,4 +28,8 @@ contextBridge.exposeInMainWorld('api', {
   onShortcutsFailed: (cb) => ipcRenderer.on('shortcuts-failed', (_e, failed) => cb(failed)),
   // --- Stop son depuis la barre système ---
   onTrayStop: (cb) => ipcRenderer.on('tray-stop', () => cb()),
+
+  // --- Bulles de chat ---
+  showBubble: (data) => ipcRenderer.send('show-bubble', data), // contrôle -> main
+  onBubbleData: (cb) => ipcRenderer.on('bubble-data', (_e, d) => cb(d)), // main -> fenêtre bulles
 });

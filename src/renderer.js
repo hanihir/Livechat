@@ -144,7 +144,7 @@ const recv = (() => {
   try { return JSON.parse(localStorage.getItem('recv') || '{}'); } catch (_) { return {}; }
 })();
 function getRecv(key) { return recv[key] !== false; } // par défaut : on reçoit tout
-[['recvMemes', 'memes'], ['recvVideos', 'videos'], ['recvPolls', 'polls'], ['recvSounds', 'sounds']]
+[['recvMemes', 'memes'], ['recvVideos', 'videos'], ['recvPolls', 'polls'], ['recvSounds', 'sounds'], ['recvMessages', 'messages']]
   .forEach(([id, key]) => {
     const cb = document.getElementById(id);
     cb.checked = getRecv(key);
@@ -472,9 +472,39 @@ function connect() {
       showToast('🔊 ' + (msg.name || 'son') + (msg.from ? ' — ' + msg.from : ''));
     } else if (msg.type === 'stop-sound') {
       stopAllAudio(); // quelqu'un a coupé : on arrête ici aussi
+    } else if (msg.type === 'message') {
+      if (!getRecv('messages')) return;
+      window.api.showBubble({ from: msg.from, text: msg.text });
     }
   };
 }
+
+// --- Chat : envoyer un message (bulle chez tout le monde) ---
+window.sendMessage = function (text) {
+  const t = String(text || '').trim();
+  if (!t || !ws || ws.readyState !== WebSocket.OPEN) return false;
+  ws.send(JSON.stringify({ type: 'message', text: t.slice(0, 280) }));
+  return true;
+};
+
+// Barre de saisie (bouton 💬 dans la topbar)
+(function () {
+  const bar = document.getElementById('chatBar');
+  const input = document.getElementById('chatInput');
+  const sendBtn = document.getElementById('chatSend');
+  const openBtn = document.getElementById('openChat');
+  function openBar() { bar.hidden = false; input.focus(); }
+  function closeBar() { bar.hidden = true; input.value = ''; }
+  function fire() {
+    if (window.sendMessage(input.value)) { input.value = ''; input.focus(); }
+  }
+  openBtn.addEventListener('click', () => { bar.hidden ? openBar() : closeBar(); });
+  sendBtn.addEventListener('click', fire);
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') { e.preventDefault(); fire(); }
+    else if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); closeBar(); }
+  });
+})();
 
 function scheduleReconnect() {
   clearTimeout(reconnectTimer);
