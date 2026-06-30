@@ -418,7 +418,7 @@ function connect() {
       if (!getRecv('sounds')) return;
       try {
         const a = new Audio(msg.data);
-        a.volume = 1;
+        a.volume = typeof msg.volume === 'number' ? Math.max(0, Math.min(1, msg.volume)) : 1;
         a.play().catch(() => {});
       } catch (_) {}
       showToast('🔊 ' + (msg.name || 'son') + (msg.from ? ' — ' + msg.from : ''));
@@ -560,9 +560,12 @@ function pushTally(pollId) {
 }
 
 // --- Soundboard : envoyer un son à tout le monde ---
-window.sendSound = function (s) {
+window.sendSound = function (s, volume) {
   if (ws && ws.readyState === WebSocket.OPEN) {
-    ws.send(JSON.stringify({ type: 'sound', data: s.data, name: s.name }));
+    ws.send(JSON.stringify({
+      type: 'sound', data: s.data, name: s.name,
+      volume: typeof volume === 'number' ? volume : 1,
+    }));
   }
 };
 

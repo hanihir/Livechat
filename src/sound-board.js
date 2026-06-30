@@ -7,8 +7,19 @@
   const fileInput = document.getElementById('soundFile');
   const status = document.getElementById('soundStatus');
   const grid = document.getElementById('soundGrid');
+  const volInput = document.getElementById('soundVol');
+  const volVal = document.getElementById('soundVolVal');
 
   const preview = new Audio();
+
+  // Volume du soundboard (mémorisé), appliqué à l'aperçu ET envoyé avec le son.
+  volInput.value = localStorage.getItem('soundVol') || '100';
+  volVal.textContent = volInput.value;
+  volInput.addEventListener('input', () => {
+    volVal.textContent = volInput.value;
+    localStorage.setItem('soundVol', volInput.value);
+  });
+  function getVol() { return Number(volInput.value) / 100; }
 
   window.openSoundboard = function () {
     overlay.hidden = false;
@@ -53,6 +64,7 @@
       e.stopPropagation();
       preview.pause();
       preview.src = s.data;
+      preview.volume = getVol();
       preview.play().catch(() => {});
     });
     tile.appendChild(play);
@@ -62,9 +74,11 @@
     name.textContent = s.name;
     tile.appendChild(name);
 
+    // Clic = on envoie à tout le monde. On NE ferme PAS (pour pouvoir spammer).
     tile.addEventListener('click', () => {
-      window.sendSound(s);
-      close();
+      window.sendSound(s, getVol());
+      tile.classList.add('hit');
+      setTimeout(() => tile.classList.remove('hit'), 180);
     });
     return tile;
   }

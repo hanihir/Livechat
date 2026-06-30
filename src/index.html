@@ -329,6 +329,7 @@
       transition: transform .1s, box-shadow .1s;
     }
     .sound-tile:hover { transform: translate(-1px,-1px); box-shadow: 5px 5px 0 var(--ink); background: var(--lime); }
+    .sound-tile.hit { background: var(--pink); color: #fff; transform: scale(.95); }
     .sound-name { font-family: var(--font-display); font-weight: 700; font-size: 15px; word-break: break-word; }
     .sound-play {
       position: absolute; top: 6px; right: 6px; width: 30px; height: 30px;
@@ -634,7 +635,12 @@
     <div style="text-align:center; margin-bottom:14px;">
       <button class="btn primary" id="soundImport">➕ Importer un son (partagé)</button>
       <input type="file" id="soundFile" accept="audio/*" hidden />
-      <div class="sub" style="margin-top:8px;">Clique un son pour le balancer à tout le monde 🔊 — ▶️ pour l'écouter avant.</div>
+      <div class="sub" style="margin-top:8px;">Clique un son pour le balancer à tout le monde 🔊 — tu peux <b>spammer</b> ! (▶️ pour écouter avant)</div>
+    </div>
+    <div class="row" style="max-width:320px; margin:0 auto 14px;">
+      <label style="font-size:12px; color:var(--muted); min-width:64px;">🔊 Volume</label>
+      <input type="range" id="soundVol" min="0" max="100" value="100" />
+      <span class="dur"><span id="soundVolVal">100</span>%</span>
     </div>
     <div class="lib-status" id="soundStatus"></div>
     <div class="sound-grid" id="soundGrid"></div>

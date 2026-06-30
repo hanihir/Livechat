@@ -127,6 +127,7 @@ wss.on('connection', (ws) => {
         data: msg.data,
         name: String(msg.name || 'son').slice(0, 40),
         from: ws.meta.name,
+        volume: typeof msg.volume === 'number' ? msg.volume : 1,
       });
       return;
     }
