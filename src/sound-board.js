@@ -21,6 +21,41 @@
   });
   function getVol() { return Number(volInput.value) / 100; }
 
+  // --- Raccourcis clavier : assignation d'une combinaison à un son ---
+  let capturing = null;
+  function getKeys() { try { return JSON.parse(localStorage.getItem('soundKeys') || '{}'); } catch (_) { return {}; } }
+  function setKeys(k) { localStorage.setItem('soundKeys', JSON.stringify(k)); if (window.refreshSoundShortcuts) window.refreshSoundShortcuts(); }
+  function comboFor(s) { const k = getKeys(); return Object.keys(k).find((c) => k[c].data === s.data) || null; }
+  function buildAccel(e) {
+    const parts = [];
+    if (e.ctrlKey) parts.push('CommandOrControl');
+    if (e.altKey) parts.push('Alt');
+    if (e.shiftKey) parts.push('Shift');
+    let key = e.key;
+    if (['Control', 'Alt', 'Shift', 'Meta'].includes(key)) return null;
+    const arrows = { ArrowUp: 'Up', ArrowDown: 'Down', ArrowLeft: 'Left', ArrowRight: 'Right' };
+    if (arrows[key]) key = arrows[key];
+    else if (key === ' ') key = 'Space';
+    else if (key.length === 1) key = key.toUpperCase();
+    parts.push(key);
+    return parts.length >= 2 ? parts.join('+') : null;
+  }
+  document.addEventListener('keydown', (e) => {
+    if (overlay.hidden) return;
+    if (!capturing) { if (e.key === 'Escape') preview.pause(); return; }
+    e.preventDefault();
+    if (e.key === 'Escape') { capturing = null; status.textContent = 'Assignation annulée.'; return; }
+    const accel = buildAccel(e);
+    if (!accel) { status.textContent = 'Il faut un modificateur (Ctrl / Alt / Maj) + une touche…'; return; }
+    const k = getKeys();
+    for (const c of Object.keys(k)) if (k[c].data === capturing.data) delete k[c]; // 1 son = 1 raccourci
+    k[accel] = { name: capturing.name, data: capturing.data };
+    setKeys(k);
+    status.textContent = '⌨️ ' + accel + ' → ' + capturing.name;
+    capturing = null;
+    renderGrid();
+  }, true);
+
   window.openSoundboard = function () {
     overlay.hidden = false;
     load();
@@ -32,6 +67,7 @@
   openBtn.addEventListener('click', () => window.openSoundboard());
   closeBtn.addEventListener('click', close);
 
+  let currentSounds = [];
   async function load() {
     grid.innerHTML = '';
     if (!window.SB || !window.SB.configured()) {
@@ -39,18 +75,20 @@
       return;
     }
     status.textContent = 'Chargement…';
-    let sounds;
     try {
-      sounds = await window.SB.getSounds();
+      currentSounds = await window.SB.getSounds();
     } catch (e) {
       status.textContent = 'Erreur de chargement.';
       return;
     }
-    status.textContent = sounds.length
-      ? sounds.length + ' sons — clique pour envoyer 🔊'
+    status.textContent = currentSounds.length
+      ? currentSounds.length + ' sons — clique pour envoyer 🔊  (⌨️ = raccourci)'
       : 'Aucun son. Importes-en un !';
+    renderGrid();
+  }
+  function renderGrid() {
     grid.innerHTML = '';
-    for (const s of sounds) grid.appendChild(makeTile(s));
+    for (const s of currentSounds) grid.appendChild(makeTile(s));
   }
 
   function makeTile(s) {
@@ -68,6 +106,27 @@
       preview.play().catch(() => {});
     });
     tile.appendChild(play);
+
+    // bouton raccourci (coin haut-gauche) : affiche la combinaison si assignée
+    const kbd = document.createElement('button');
+    kbd.className = 'sound-kbd';
+    const combo = comboFor(s);
+    kbd.textContent = combo || '⌨️';
+    kbd.title = combo ? 'Raccourci : ' + combo + ' — clic droit pour retirer' : 'Assigner un raccourci clavier';
+    kbd.addEventListener('click', (e) => {
+      e.stopPropagation();
+      capturing = s;
+      status.textContent = 'Appuie sur ta combinaison pour « ' + s.name + ' »  (Échap = annuler)…';
+    });
+    kbd.addEventListener('contextmenu', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const k = getKeys();
+      for (const c of Object.keys(k)) if (k[c].data === s.data) delete k[c];
+      setKeys(k);
+      renderGrid();
+    });
+    tile.appendChild(kbd);
 
     const name = document.createElement('div');
     name.className = 'sound-name';

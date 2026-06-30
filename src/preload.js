@@ -19,4 +19,8 @@ contextBridge.exposeInMainWorld('api', {
   onPollVoteToControl: (cb) => ipcRenderer.on('poll-cast-to-control', (_e, d) => cb(d)), // main -> contrôle
   sendPollTally: (data) => ipcRenderer.send('poll-tally-up', data), // contrôle -> main
   onPollTally: (cb) => ipcRenderer.on('poll-tally', (_e, d) => cb(d)), // main -> fenêtre sondage
+
+  // --- Raccourcis clavier globaux (soundboard) ---
+  registerShortcuts: (combos) => ipcRenderer.send('register-shortcuts', combos),
+  onShortcutFired: (cb) => ipcRenderer.on('shortcut-fired', (_e, combo) => cb(combo)),
 });

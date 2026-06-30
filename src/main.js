@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, screen, Tray, Menu, nativeImage, session } = require('electron');
+const { app, BrowserWindow, ipcMain, screen, Tray, Menu, nativeImage, session, globalShortcut } = require('electron');
 const path = require('path');
 
 // Autorise la lecture audio automatique : sinon Chromium bloque le son
@@ -199,6 +199,22 @@ ipcMain.on('poll-tally-up', (_event, data) => {
     pollWindow.webContents.send('poll-tally', data);
   }
 });
+
+// Raccourcis clavier globaux : on (ré)enregistre la liste demandée par l'interface.
+ipcMain.on('register-shortcuts', (_event, combos) => {
+  try { globalShortcut.unregisterAll(); } catch (_) {}
+  (combos || []).forEach((combo) => {
+    try {
+      globalShortcut.register(combo, () => {
+        if (controlWindow && !controlWindow.isDestroyed()) {
+          controlWindow.webContents.send('shortcut-fired', combo);
+        }
+      });
+    } catch (_) { /* combinaison invalide ou déjà prise */ }
+  });
+});
+
+app.on('will-quit', () => { try { globalShortcut.unregisterAll(); } catch (_) {} });
 
 // Téléchargements depuis internet faits côté processus principal :
 // ça évite tous les soucis de CORS pour les API GIF/mèmes.

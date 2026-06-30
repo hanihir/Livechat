@@ -153,6 +153,8 @@
     el.style.color = b.color;
     el.style.left = b.xPct + '%';
     el.style.top = b.yPct + '%';
+    // largeur max pour que le texte reste DANS le cadre (passe à la ligne)
+    el.style.maxWidth = Math.max(12, 98 - b.xPct) + '%';
     // contour noir « façon mème » derrière le texte (s'adapte à la taille)
     const o = Math.max(1, b.size / 22);
     el.style.textShadow =
@@ -214,6 +216,20 @@
     if (e.target === stage || e.target === img || e.target === hint) select(null);
   });
 
+  // Découpe un texte en lignes qui tiennent dans une largeur donnée (pixels canvas).
+  function wrapCanvas(ctx, text, maxW) {
+    const words = String(text || '').split(/\s+/);
+    const lines = [];
+    let cur = '';
+    for (const word of words) {
+      const test = cur ? cur + ' ' + word : word;
+      if (ctx.measureText(test).width <= maxW || !cur) cur = test;
+      else { lines.push(cur); cur = word; }
+    }
+    if (cur) lines.push(cur);
+    return lines;
+  }
+
   // --- Export : on « aplatit » l'image + les textes dans un canvas ---
   validateBtn.addEventListener('click', () => {
     if (!hasImage) { close(); return; }
@@ -265,11 +281,17 @@
       ctx.font = `${fontPx}px Impact, "Arial Black", sans-serif`;
       const x = (b.xPct / 100) * w;
       const y = (b.yPct / 100) * h;
+      const maxW = (Math.max(12, 98 - b.xPct) / 100) * w; // même largeur que dans l'éditeur
       ctx.lineWidth = Math.max(2, fontPx / 7);
-      ctx.strokeStyle = '#000';
-      ctx.strokeText(b.text, x, y);
-      ctx.fillStyle = b.color;
-      ctx.fillText(b.text, x, y);
+      const lines = wrapCanvas(ctx, b.text, maxW);
+      const lineH = fontPx * 1.08;
+      lines.forEach((ln, i) => {
+        const ly = y + i * lineH;
+        ctx.strokeStyle = '#000';
+        ctx.strokeText(ln, x, ly);
+        ctx.fillStyle = b.color;
+        ctx.fillText(ln, x, ly);
+      });
     }
 
     const dataUrl = canvas.toDataURL('image/png');

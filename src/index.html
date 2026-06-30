@@ -213,15 +213,15 @@
     .editor-head { display: flex; align-items: center; justify-content: space-between; font-family: var(--font-display); font-size: 20px; font-weight: 800; margin-bottom: 16px; }
 
     /* ---- Créateur de mèmes ---- */
-    .editor-stage { position: relative; width: fit-content; max-width: 100%; margin: 0 auto 16px; }
+    .editor-stage { position: relative; width: fit-content; max-width: 100%; margin: 0 auto 16px; overflow: hidden; border-radius: 10px; }
     .me-hint { color: var(--muted); border: 2.5px dashed var(--ink); border-radius: 14px; padding: 40px 24px; text-align: center; font-size: 14px; font-weight: 600; background: var(--card); }
     #meImage { max-width: 100%; max-height: 44vh; display: none; border-radius: 10px; border: var(--bd); box-shadow: var(--sh); }
     .me-draw { position: absolute; inset: 0; pointer-events: none; border-radius: 10px; }
     .me-draw.drawing { pointer-events: auto; cursor: crosshair; }
     .me-text {
-      position: absolute; white-space: nowrap; line-height: 1;
+      position: absolute; white-space: normal; word-break: break-word; line-height: 1.08;
       font-family: Impact, 'Arial Black', sans-serif; font-weight: 400;
-      color: #fff; cursor: move; padding: 2px 4px;
+      color: #fff; cursor: move; padding: 0 2px;
       -webkit-user-select: none; user-select: none;
     }
     .me-text.sel { outline: 3px dashed var(--blue); outline-offset: 2px; }
@@ -351,6 +351,13 @@
       border: 2px solid var(--ink); border-radius: 50%; background: var(--yellow); cursor: pointer;
       font-size: 13px; line-height: 1; padding: 0; display: flex; align-items: center; justify-content: center;
     }
+    .sound-kbd {
+      position: absolute; top: 6px; left: 6px; max-width: 64%;
+      border: 2px solid var(--ink); border-radius: 8px; background: var(--blue); color: #fff; cursor: pointer;
+      font-family: var(--font-display); font-size: 10px; font-weight: 700; padding: 2px 6px; line-height: 1.15;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .sound-kbd:hover { background: var(--pink); }
     .toast {
       position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%);
       background: var(--ink); color: var(--paper); border: 2.5px solid var(--ink);
@@ -552,6 +559,8 @@
     <div class="lib-tabs">
       <button class="lib-tab active" id="tabSearch">🔎 Rechercher</button>
       <button class="lib-tab" id="tabMine">📁 Mes sons</button>
+      <button class="lib-tab" id="tabMusFav">⭐ Favoris</button>
+      <button class="lib-tab" id="tabSound">🔊 Soundboard</button>
     </div>
     <div class="lib-search" id="musicSearchWrap">
       <input type="text" id="musicQuery" placeholder="Titre ou artiste… (ex : Booba)" />

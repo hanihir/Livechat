@@ -43,6 +43,15 @@ let chosenEffect = 'none'; // effet d'apparition
 let chosenTexts = null; // couche texte (quand on légende un GIF)
 let chosenDrawing = null; // couche dessin/pinceau (quand on dessine sur un GIF)
 let incomingAudio = null; // musique en cours de lecture à la réception
+let activeSounds = []; // sons du soundboard en cours de lecture
+
+// Coupe tout ce qui joue (musiques + sons reçus). Lié à la touche Échap + clic sur le toast.
+function stopAllAudio() {
+  if (incomingAudio) { try { incomingAudio.pause(); } catch (_) {} incomingAudio = null; }
+  activeSounds.forEach((a) => { try { a.pause(); } catch (_) {} });
+  activeSounds = [];
+}
+window.addEventListener('keydown', (e) => { if (e.key === 'Escape') stopAllAudio(); });
 
 // Joue la musique reçue depuis la fenêtre principale (lecture audio plus fiable
 // que dans la pop-up transparente), et l'arrête à la fin de la durée du mème.
@@ -432,6 +441,8 @@ function connect() {
         const a = new Audio(msg.data);
         a.volume = typeof msg.volume === 'number' ? Math.max(0, Math.min(1, msg.volume)) : 1;
         a.play().catch(() => {});
+        activeSounds.push(a);
+        a.addEventListener('ended', () => { activeSounds = activeSounds.filter((x) => x !== a); });
       } catch (_) {}
       showToast('🔊 ' + (msg.name || 'son') + (msg.from ? ' — ' + msg.from : ''));
     }
@@ -581,14 +592,29 @@ window.sendSound = function (s, volume) {
   }
 };
 
+// --- Raccourcis clavier des sons (déclenchent l'envoi d'un son) ---
+function getSoundKeys() { try { return JSON.parse(localStorage.getItem('soundKeys') || '{}'); } catch (_) { return {}; } }
+window.refreshSoundShortcuts = function () { window.api.registerShortcuts(Object.keys(getSoundKeys())); };
+window.api.onShortcutFired((combo) => {
+  const s = getSoundKeys()[combo];
+  if (s) {
+    const vol = Number(localStorage.getItem('soundVol') || '100') / 100;
+    window.sendSound(s, vol);
+  }
+});
+window.refreshSoundShortcuts(); // (ré)enregistre les raccourcis au lancement
+
 // Petit message éphémère (réception d'un son, etc.)
 let toastTimer = null;
 function showToast(text) {
   const el = document.getElementById('toast');
-  el.textContent = text;
+  el.textContent = text + '  ⏹️';
   el.hidden = false;
+  el.style.cursor = 'pointer';
+  el.title = 'Cliquer (ou Échap) pour couper le son';
+  el.onclick = () => { stopAllAudio(); el.hidden = true; };
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => { el.hidden = true; }, 2500);
+  toastTimer = setTimeout(() => { el.hidden = true; }, 3000);
 }
 
 connect();
