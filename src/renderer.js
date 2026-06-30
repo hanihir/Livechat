@@ -69,7 +69,8 @@ window.addEventListener('keydown', (e) => { if (e.key === 'Escape') stopEverywhe
 document.getElementById('stopBtn').addEventListener('click', stopEverywhere);
 
 // Joue la musique reçue depuis la fenêtre principale (lecture audio plus fiable
-// que dans la pop-up transparente), et l'arrête à la fin de la durée du mème.
+// que dans la pop-up transparente). La musique joue jusqu'à la FIN de l'extrait
+// (indépendamment de la durée d'affichage du mème). On peut couper avec Échap / ⏹️.
 function playIncomingAudio(src, duration, volume) {
   if (incomingAudio) {
     try { incomingAudio.pause(); } catch (_) {}
@@ -81,14 +82,10 @@ function playIncomingAudio(src, duration, volume) {
   audio.play().catch(() => {});
   incomingAudio = audio;
   updateStopBtn();
-  const ms = Math.max(1, Number(duration) || 5) * 1000;
-  setTimeout(() => {
-    if (incomingAudio === audio) {
-      try { audio.pause(); } catch (_) {}
-      incomingAudio = null;
-      updateStopBtn();
-    }
-  }, ms);
+  // quand l'extrait se termine tout seul, on nettoie le bouton « couper »
+  audio.addEventListener('ended', () => {
+    if (incomingAudio === audio) { incomingAudio = null; updateStopBtn(); }
+  });
 }
 let ws = null;
 let reconnectTimer = null;
