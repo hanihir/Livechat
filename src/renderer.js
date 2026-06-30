@@ -2,6 +2,9 @@
 // Pour tester en local à la place : 'ws://localhost:8080'
 const DEFAULT_SERVER = 'wss://livechat-k7we.onrender.com';
 
+// Version affichée dans la barre du haut (« v1.0.4 »)
+try { const v = document.getElementById('appVer'); if (v && window.api.appVersion) v.textContent = 'v' + window.api.appVersion; } catch (_) {}
+
 const els = {
   pseudoDisplay: document.getElementById('pseudoDisplay'),
   pseudoSetup: document.getElementById('pseudoSetup'),

@@ -26,17 +26,39 @@
   function getKeys() { try { return JSON.parse(localStorage.getItem('soundKeys') || '{}'); } catch (_) { return {}; } }
   function setKeys(k) { localStorage.setItem('soundKeys', JSON.stringify(k)); if (window.refreshSoundShortcuts) window.refreshSoundShortcuts(); }
   function comboFor(s) { const k = getKeys(); return Object.keys(k).find((c) => k[c].data === s.data) || null; }
+  // On se base sur la touche PHYSIQUE (e.code) et non e.key : ça marche pareil
+  // en AZERTY/QWERTY (la touche « 1 » donne bien « 1 », pas « & ») et ça produit
+  // toujours un accélérateur valide pour Electron (1, A, num1, Up, F5…).
+  function keyFromCode(e) {
+    const c = e.code || '';
+    let m;
+    if ((m = c.match(/^Key([A-Z])$/))) return m[1];
+    if ((m = c.match(/^Digit(\d)$/))) return m[1];
+    if ((m = c.match(/^Numpad(\d)$/))) return 'num' + m[1];
+    if ((m = c.match(/^F(\d{1,2})$/))) return 'F' + m[1];
+    const map = {
+      ArrowUp: 'Up', ArrowDown: 'Down', ArrowLeft: 'Left', ArrowRight: 'Right',
+      Space: 'Space', Enter: 'Return', NumpadEnter: 'Return', Tab: 'Tab',
+      Backspace: 'Backspace', Delete: 'Delete', Insert: 'Insert',
+      Home: 'Home', End: 'End', PageUp: 'PageUp', PageDown: 'PageDown',
+      NumpadAdd: 'numadd', NumpadSubtract: 'numsub', NumpadMultiply: 'nummult',
+      NumpadDivide: 'numdiv', NumpadDecimal: 'numdec',
+      Minus: '-', Equal: '=', Comma: ',', Period: '.', Slash: '/', Backslash: '\\',
+      Semicolon: ';', Quote: "'", BracketLeft: '[', BracketRight: ']', Backquote: '`',
+    };
+    if (map[c]) return map[c];
+    // dernier recours : e.key si c'est une lettre/chiffre exploitable
+    if (e.key && e.key.length === 1) return e.key.toUpperCase();
+    return null;
+  }
   function buildAccel(e) {
+    if (['Control', 'Alt', 'Shift', 'Meta'].includes(e.key)) return null;
+    const key = keyFromCode(e);
+    if (!key) return null;
     const parts = [];
     if (e.ctrlKey) parts.push('CommandOrControl');
     if (e.altKey) parts.push('Alt');
     if (e.shiftKey) parts.push('Shift');
-    let key = e.key;
-    if (['Control', 'Alt', 'Shift', 'Meta'].includes(key)) return null;
-    const arrows = { ArrowUp: 'Up', ArrowDown: 'Down', ArrowLeft: 'Left', ArrowRight: 'Right' };
-    if (arrows[key]) key = arrows[key];
-    else if (key === ' ') key = 'Space';
-    else if (key.length === 1) key = key.toUpperCase();
     parts.push(key);
     return parts.join('+'); // n'importe quelle touche, seule ou en combo
   }
@@ -44,9 +66,9 @@
     if (overlay.hidden) return;
     if (!capturing) { if (e.key === 'Escape') preview.pause(); return; }
     e.preventDefault();
-    if (e.key === 'Escape') { capturing = null; status.textContent = 'Assignation annulée.'; return; }
+    if (e.key === 'Escape') { capturing = null; status.textContent = 'Assignation annulée.'; renderGrid(); return; }
     const accel = buildAccel(e);
-    if (!accel) { status.textContent = 'Appuie sur une touche (ou une combinaison)…'; return; }
+    if (!accel) { status.textContent = 'Touche non reconnue, réessaie…'; return; }
     const k = getKeys();
     for (const c of Object.keys(k)) if (k[c].data === capturing.data) delete k[c]; // 1 son = 1 raccourci
     k[accel] = { name: capturing.name, data: capturing.data };
@@ -86,18 +108,23 @@
       : 'Aucun son. Importes-en un !';
     renderGrid();
   }
+  // palette de couleurs pour égayer les pads (cycle)
+  const PADS = ['var(--lime)', 'var(--yellow)', 'var(--pink)', 'var(--blue)', 'var(--coral)', '#9DE7D7'];
+
   function renderGrid() {
     grid.innerHTML = '';
-    for (const s of currentSounds) grid.appendChild(makeTile(s));
+    currentSounds.forEach((s, i) => grid.appendChild(makeTile(s, i)));
   }
 
-  function makeTile(s) {
+  function makeTile(s, idx) {
     const tile = document.createElement('div');
-    tile.className = 'sound-tile';
+    tile.className = 'sound-tile' + (capturing && capturing.data === s.data ? ' capturing' : '');
+    tile.style.setProperty('--accent', PADS[idx % PADS.length]);
 
     const play = document.createElement('button');
     play.className = 'sound-play';
-    play.textContent = '▶️';
+    play.textContent = '▶';
+    play.title = 'Écouter (sans envoyer)';
     play.addEventListener('click', (e) => {
       e.stopPropagation();
       preview.pause();
@@ -107,18 +134,19 @@
     });
     tile.appendChild(play);
 
-    // coin haut-gauche : bouton raccourci (+ bouton ✕ pour retirer si assigné)
+    // coin haut-gauche : keycap du raccourci (+ bouton ✕ pour retirer si assigné)
     const kbdWrap = document.createElement('div');
     kbdWrap.className = 'kbd-wrap';
     const combo = comboFor(s);
     const kbd = document.createElement('button');
-    kbd.className = 'sound-kbd';
-    kbd.textContent = combo || '⌨️';
+    kbd.className = 'sound-kbd' + (combo ? '' : ' empty');
+    kbd.textContent = combo || '⌨';
     kbd.title = combo ? 'Raccourci : ' + combo + ' (clic = changer)' : 'Assigner un raccourci clavier';
     kbd.addEventListener('click', (e) => {
       e.stopPropagation();
       capturing = s;
-      status.textContent = 'Appuie sur LA touche (ou combo) de ton choix pour « ' + s.name + ' »  (Échap = annuler)…';
+      status.textContent = '⌨️ Appuie sur la touche de ton choix pour « ' + s.name + ' »  (Échap = annuler)';
+      renderGrid();
     });
     kbdWrap.appendChild(kbd);
     if (combo) {

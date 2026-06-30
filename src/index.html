@@ -51,7 +51,8 @@
       display: flex; align-items: center; justify-content: space-between; gap: 12px;
       padding: 14px 20px; border-bottom: var(--bd); background: var(--card);
     }
-    .brand { font-family: var(--font-display); font-weight: 800; font-size: 24px; letter-spacing: -0.02em; text-shadow: 2.5px 2.5px 0 var(--pink); }
+    .brand { display: flex; align-items: baseline; gap: 8px; font-family: var(--font-display); font-weight: 800; font-size: 24px; letter-spacing: -0.02em; text-shadow: 2.5px 2.5px 0 var(--pink); }
+    .brand .ver { font-family: var(--font-body); font-weight: 700; font-size: 11px; letter-spacing: 0; text-shadow: none; color: var(--ink); background: var(--lime); border: 2px solid var(--ink); border-radius: 999px; padding: 1px 7px; }
     .topbar-right { display: flex; align-items: center; gap: 10px; }
     .icon-btn {
       width: 44px; height: 44px; flex: 0 0 auto; border: var(--bd); border-radius: 11px;
@@ -340,32 +341,46 @@
     .board-score { font-family: var(--font-display); font-weight: 800; text-align: right; }
     .board-sub { font-size: 11px; color: var(--muted); font-weight: 600; text-align: right; }
 
-    /* ---- Soundboard ---- */
-    .sound-grid { display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); max-width: 640px; margin: 0 auto; width: 100%; }
+    /* ---- Soundboard (pads) ---- */
+    .sound-grid { display: grid; gap: 14px; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); max-width: 660px; margin: 0 auto; width: 100%; }
     .sound-tile {
-      position: relative; background: var(--card); border: var(--bd); border-radius: 14px;
-      box-shadow: var(--sh-sm); padding: 18px 14px; text-align: center; cursor: pointer;
-      transition: transform .1s, box-shadow .1s;
+      position: relative; display: flex; flex-direction: column; justify-content: flex-end;
+      min-height: 104px; background: var(--accent, var(--card)); border: var(--bd); border-radius: 16px;
+      box-shadow: var(--sh-sm); padding: 12px; cursor: pointer; overflow: hidden;
+      transition: transform .08s, box-shadow .08s, filter .08s;
     }
-    .sound-tile:hover { transform: translate(-1px,-1px); box-shadow: 5px 5px 0 var(--ink); background: var(--lime); }
-    .sound-tile.hit { background: var(--pink); color: #fff; transform: scale(.95); }
-    .sound-name { font-family: var(--font-display); font-weight: 700; font-size: 15px; word-break: break-word; }
+    .sound-tile:hover { transform: translate(-1.5px,-1.5px); box-shadow: 6px 6px 0 var(--ink); filter: brightness(1.04); }
+    .sound-tile:active { transform: translate(2px,2px); box-shadow: 1px 1px 0 var(--ink); }
+    .sound-tile.hit { animation: padhit .18s ease; }
+    @keyframes padhit { 0% { transform: scale(.92); filter: brightness(.8); } 100% { transform: scale(1); } }
+    .sound-name {
+      font-family: var(--font-display); font-weight: 800; font-size: 16px; line-height: 1.1;
+      color: var(--ink); word-break: break-word; text-align: left;
+    }
+    /* petit bouton aperçu (écoute en local, n'envoie rien) */
     .sound-play {
-      position: absolute; top: 6px; right: 6px; width: 30px; height: 30px;
-      border: 2px solid var(--ink); border-radius: 50%; background: var(--yellow); cursor: pointer;
-      font-size: 13px; line-height: 1; padding: 0; display: flex; align-items: center; justify-content: center;
+      position: absolute; top: 8px; right: 8px; width: 30px; height: 30px;
+      border: 2px solid var(--ink); border-radius: 50%; background: rgba(255,255,255,.85); cursor: pointer;
+      font-size: 12px; line-height: 1; padding: 0; display: flex; align-items: center; justify-content: center;
     }
-    .kbd-wrap { position: absolute; top: 6px; left: 6px; display: flex; gap: 4px; max-width: 78%; }
+    .sound-play:hover { background: #fff; transform: scale(1.1); }
+    /* keycap du raccourci, en haut à gauche */
+    .kbd-wrap { position: absolute; top: 8px; left: 8px; display: flex; align-items: center; gap: 4px; max-width: 80%; }
     .sound-kbd {
-      border: 2px solid var(--ink); border-radius: 8px; background: var(--blue); color: #fff; cursor: pointer;
-      font-family: var(--font-display); font-size: 10px; font-weight: 700; padding: 2px 6px; line-height: 1.15;
+      border: 2px solid var(--ink); border-radius: 8px; background: #fff; color: var(--ink); cursor: pointer;
+      font-family: var(--font-display); font-size: 12px; font-weight: 800; min-width: 22px; text-align: center;
+      padding: 3px 7px; line-height: 1; box-shadow: 0 2px 0 var(--ink);
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
-    .sound-kbd:hover { background: var(--pink); }
+    .sound-kbd.empty { background: transparent; border-style: dashed; box-shadow: none; opacity: .6; font-size: 13px; padding: 3px 6px; }
+    .sound-kbd:hover { background: var(--lime); opacity: 1; }
     .sound-clear {
-      border: 2px solid var(--ink); border-radius: 8px; background: var(--coral); color: #fff; cursor: pointer;
-      font-size: 10px; font-weight: 800; padding: 2px 5px; line-height: 1.15; flex: 0 0 auto;
+      border: 2px solid var(--ink); border-radius: 50%; background: var(--coral); color: #fff; cursor: pointer;
+      font-size: 11px; font-weight: 900; width: 20px; height: 20px; line-height: 1; padding: 0; flex: 0 0 auto;
     }
+    /* mode « appuie sur une touche » */
+    .sound-tile.capturing { outline: 3px dashed var(--blue); outline-offset: -6px; }
+    .sound-tile.capturing .sound-name::after { content: ' — appuie sur une touche…'; font-weight: 600; font-size: 12px; }
     .toast {
       position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%);
       background: var(--ink); color: var(--paper); border: 2.5px solid var(--ink);
@@ -386,7 +401,7 @@
 </head>
 <body>
   <header class="topbar">
-    <div class="brand">📺 LiveChatr</div>
+    <div class="brand">📺 livechat <span class="ver" id="appVer"></span></div>
     <div class="topbar-right">
       <span id="pseudoDisplay" class="pseudo-display">—</span>
       <button id="openSound" class="icon-btn" title="Soundboard">🔊</button>

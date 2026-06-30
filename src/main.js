@@ -209,6 +209,9 @@ ipcMain.on('poll-tally-up', (_event, data) => {
   }
 });
 
+// Version de l'app, demandée par le preload (affichée dans la barre).
+ipcMain.on('app-version', (event) => { event.returnValue = app.getVersion(); });
+
 // Raccourcis clavier globaux : on (ré)enregistre la liste demandée par l'interface.
 ipcMain.on('register-shortcuts', (_event, combos) => {
   try { globalShortcut.unregisterAll(); } catch (_) {}
